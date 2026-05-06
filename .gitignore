@@ -1,0 +1,37 @@
+# Dependencies
+node_modules/
+frontend/node_modules/
+
+# Build output
+frontend/dist/
+backend/target/
+
+# Environment files (real config — user creates from .env.example)
+.env
+.env.local
+
+# Template (committed for reference)
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Database
+backend/photos.db
+backend/photos.db.bak
+
+# Uploads
+backend/uploads/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
