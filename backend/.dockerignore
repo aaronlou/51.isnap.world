@@ -1,0 +1,6 @@
+target/
+*.db
+uploads/
+.git/
+Dockerfile
+scripts/

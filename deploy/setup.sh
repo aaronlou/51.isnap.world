@@ -355,11 +355,12 @@ if [[ "$OS" == "debian" ]]; then
     ln -sf "$NGINX_CONF" "$NGINX_ENABLED_DIR/"
     rm -f /etc/nginx/sites-enabled/default
 elif [[ "$OS" == "rhel" || "$OS" == "amazon" ]]; then
-    # CentOS: 禁用默认站点（如果存在）
+    # CentOS/Amazon Linux: 禁用默认站点（如果存在）
     rm -f /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf 2>/dev/null || true
 fi
 
-nginx -t && systemctl reload nginx
+# 确保 nginx 已启动（首次安装时服务未运行，reload 会失败）
+nginx -t && (systemctl start nginx || true) && systemctl reload nginx
 info "Nginx 已加载"
 
 # ============================================

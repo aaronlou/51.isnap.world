@@ -10,7 +10,10 @@ RUN apt-get update && \
 WORKDIR /app
 COPY Cargo.toml Cargo.lock ./
 COPY src ./src
-RUN cargo build --release
+RUN --mount=type=cache,target=/app/target \
+    --mount=type=cache,target=/usr/local/cargo/registry \
+    cargo build --release && \
+    cp /app/target/release/photo-battle-backend /app/photo-battle-backend
 
 # =====================
 # Runtime stage
@@ -22,7 +25,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
-COPY --from=builder /app/target/release/photo-battle-backend .
+COPY --from=builder /app/photo-battle-backend .
 
 RUN mkdir -p uploads
 
