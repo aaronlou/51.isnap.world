@@ -100,7 +100,10 @@ fi
 # 生产环境配置文件
 if [[ ! -f "$INSTALL_DIR/.env" ]]; then
     cp deploy/.env.example "$INSTALL_DIR/.env"
-    warn "===== 请编辑 $INSTALL_DIR/.env，填入 GEMINI_API_KEY ====="
+    warn "===== 请编辑 $INSTALL_DIR/.env，填入以下配置 ====="
+    warn "  1. GEMINI_API_KEY — Gemini API 密钥（必填）"
+    warn "  2. HF_TOKEN — HuggingFace Token（推荐，加速 CLIP 模型下载）"
+    warn "  3. HF_ENDPOINT — 国内用户设为 https://hf-mirror.com"
 else
     info ".env 已存在，跳过"
 fi
@@ -144,6 +147,20 @@ fi
 "$INSTALL_DIR/.venv/bin/pip" install --quiet --upgrade pip
 "$INSTALL_DIR/.venv/bin/pip" install --quiet torch --index-url https://download.pytorch.org/whl/cpu
 "$INSTALL_DIR/.venv/bin/pip" install --quiet -r "$INSTALL_DIR/backend/scripts/requirements.txt"
+
+# 预先下载 CLIP 模型（避免首次请求时等待）
+if [[ -n "${HF_TOKEN:-}" ]]; then
+    warn "检测到 HF_TOKEN，使用认证下载（速度更快）"
+fi
+if [[ -n "${HF_ENDPOINT:-}" ]]; then
+    info "使用 HuggingFace 镜像: $HF_ENDPOINT"
+fi
+"$INSTALL_DIR/.venv/bin/python" -c "
+from transformers import CLIPModel, CLIPProcessor
+CLIPProcessor.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$INSTALL_DIR/backend/scripts/.model_cache')
+CLIPModel.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$INSTALL_DIR/backend/scripts/.model_cache')
+print('CLIP model downloaded')
+" && info "CLIP 模型预下载完成" || warn "CLIP 模型下载超时，服务启动后会自动重试"
 
 # VolcEngine systemd 服务
 cp "$INSTALL_DIR/deploy/volcengine.service" /etc/systemd/system/volcengine.service
