@@ -65,7 +65,7 @@ elif [[ "$OS" == "rhel" ]]; then
     # EPEL 提供 nginx 和 certbot
     $PKG_INSTALL epel-release
     $PKG_UPDATE
-    $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip nodejs npm rsync
+    $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip rsync
 fi
 info "系统依赖已安装"
 
@@ -91,22 +91,27 @@ fi
 # ============================================
 echo ""
 echo "=== 3. 安装 Node.js (>= 18) ==="
-# 检查版本，现有 node 太旧也会升级
+
+# 清理冲突：移除旧版包和旧 nodesource 仓库
+if [[ "$OS" == "rhel" ]]; then
+    dnf remove -y -q nodejs nodejs-full-i18n npm 2>/dev/null || true
+    rm -f /etc/yum.repos.d/nodesource*.repo /etc/yum.repos.d/N|Solid*.repo 2>/dev/null || true
+fi
+
+# 检查已有 node 版本
 NODE_OK=false
 if command -v node &>/dev/null; then
     NODE_VER=$(node -v | sed 's/v//;s/\..*//')
     if [[ "$NODE_VER" -ge 18 ]] 2>/dev/null; then
         NODE_OK=true
         info "Node.js 已存在: $(node -v)"
-    else
-        warn "Node.js 版本过旧 ($(node -v))，需要 >= 18，准备升级..."
     fi
 fi
 
 if ! $NODE_OK; then
-    # 用 fnm 安装（轻量 Node 版本管理器，无需 root，兼容 all distros）
+    # 方案一: fnm（跨发行版，无需 root）
     if ! command -v fnm &>/dev/null; then
-        curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell 2>/dev/null || true
+        curl -fsSL --retry 2 --connect-timeout 10 https://fnm.vercel.app/install | bash -s -- --skip-shell 2>/dev/null || true
         export PATH="$HOME/.local/share/fnm:$PATH"
         eval "$(fnm env --use-on-cd --shell bash)" 2>/dev/null || true
     fi
@@ -114,24 +119,24 @@ if ! $NODE_OK; then
         fnm install --lts
         fnm use lts-latest
     else
-        warn "fnm 不可用（国内网络可能被墙），直接下载 Node.js 二进制..."
-        # 移除旧版 nodejs 包，避免冲突
-        dnf remove -y -q nodejs nodejs-full-i18n 2>/dev/null || true
-        # Node.js 镜像（国内用 npmmirror）
+        # 方案二: 官方预编译二进制（适用于国内网络，支持镜像）
+        warn "fnm 不可用，直接下载 Node.js 二进制..."
         NODE_MIRROR="${NODEJS_MIRROR:-https://nodejs.org/dist}"
+        NODE_VERSION="v20.18.0"
         info "Node.js 下载源: $NODE_MIRROR"
-        curl -fsSL --retry 3 --retry-delay 5 \
-            "$NODE_MIRROR/v20.18.0/node-v20.18.0-linux-x64.tar.xz" \
-            -o /tmp/node.tar.xz && \
-        tar -xf /tmp/node.tar.xz -C /usr/local --strip-components=1 && \
-        rm -f /tmp/node.tar.xz && \
-        info "Node.js 已安装: $(node -v)" || {
-            warn "二进制下载失败，尝试 nodesource 仓库..."
-            curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-            dnf install -y -q nodejs 2>/dev/null || \
+        if curl -fsSL --retry 3 --retry-delay 5 --connect-timeout 30 \
+            "$NODE_MIRROR/$NODE_VERSION/node-$NODE_VERSION-linux-x64.tar.xz" \
+            -o /tmp/node.tar.xz; then
+            tar -xf /tmp/node.tar.xz -C /usr/local --strip-components=1
+            rm -f /tmp/node.tar.xz
+            info "Node.js 已安装: $(node -v)"
+        else
+            # 方案三: nodesource 仓库
+            warn "二进制下载失败，尝试 nodesource..."
+            curl -fsSL --retry 3 https://rpm.nodesource.com/setup_20.x | bash -
             dnf install -y -q --allowerasing nodejs 2>/dev/null || \
             dnf install -y -q nodejs
-        }
+        fi
     fi
     info "Node.js 已安装: $(node -v)"
 fi
