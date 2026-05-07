@@ -1,22 +1,31 @@
 [Unit]
 Description=Photo Battle Backend
 After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=3
 
 [Service]
 Type=simple
 User=www-data
 WorkingDirectory=/opt/photo-battle/backend
+
 ExecStart=/opt/photo-battle/backend/target/release/photo-battle-backend
 Restart=always
 RestartSec=5
 
-# 环境变量
+# 从独立的 env 文件加载敏感变量（不在版本控制中）
+EnvironmentFile=/opt/photo-battle/.env
+
+# 非敏感路径变量直接写在这里
 Environment=BASE_URL=http://localhost:8080
 Environment=DATABASE_PATH=/opt/photo-battle/data/photos.db
 Environment=UPLOAD_DIR=/opt/photo-battle/uploads
-Environment=GEMINI_API_KEY=
 Environment=ARTIMUSE_ENABLED=false
 Environment=VOLCENGINE_ENABLED=false
+
+# 日志
+StandardOutput=journal
+StandardError=journal
 
 [Install]
 WantedBy=multi-user.target
