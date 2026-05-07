@@ -72,12 +72,20 @@ info "系统依赖已安装"
 # ============================================
 echo ""
 echo "=== 2. 安装 Rust ==="
-if ! command -v cargo &>/dev/null; then
-    curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+if command -v cargo &>/dev/null; then
+    info "Rust 已存在: $(rustc --version)"
+else
+    # 国内用户可设置镜像加速：
+    #   export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
+    #   export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
+    if [[ -n "${RUSTUP_DIST_SERVER:-}" ]]; then
+        info "使用 Rust 镜像: $RUSTUP_DIST_SERVER"
+    fi
+    warn "正在下载 Rust 安装程序（网络较慢时可能需数分钟）..."
+    curl --proto '=https' --tlsv1.2 -sSf --retry 3 --retry-delay 5 https://sh.rustup.rs \
+        | sh -s -- -y --no-modify-path
     source "$HOME/.cargo/env"
     info "Rust 已安装: $(rustc --version)"
-else
-    info "Rust 已存在: $(rustc --version)"
 fi
 
 # ============================================
