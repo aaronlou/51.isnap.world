@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion'
-import { Star, Loader2, Sparkles, Trophy, Crown, Medal, Zap, Swords } from 'lucide-react'
+import { Star, Loader2, Sparkles, Trophy, Crown, Medal, Zap, Swords, Flame } from 'lucide-react'
 import type { Photo } from '@/types/photo'
 
 interface LeaderboardProps {
@@ -10,8 +10,9 @@ interface LeaderboardProps {
 const rankConfig = [
   {
     color: 'text-gold-300',
-    bg: 'from-gold-500/20 via-gold-500/10 to-transparent',
-    border: 'border-gold-500/40',
+    bg: 'from-gold-500/25 via-gold-500/10 to-transparent',
+    border: 'border-gold-500/50',
+    glow: 'shadow-[0_0_30px_rgba(229,166,35,0.15)]',
     icon: Crown,
     iconColor: 'text-gold-400',
     label: '冠军',
@@ -20,23 +21,25 @@ const rankConfig = [
   },
   {
     color: 'text-silver-300',
-    bg: 'from-silver-400/15 via-silver-400/5 to-transparent',
-    border: 'border-silver-400/30',
+    bg: 'from-silver-400/20 via-silver-400/5 to-transparent',
+    border: 'border-silver-400/40',
+    glow: 'shadow-[0_0_20px_rgba(192,192,192,0.1)]',
     icon: Medal,
     iconColor: 'text-silver-400',
     label: '亚军',
     sublabel: '实力之作',
-    scale: 0.95,
+    scale: 0.97,
   },
   {
     color: 'text-bronze-400',
-    bg: 'from-bronze-400/15 via-bronze-400/5 to-transparent',
-    border: 'border-bronze-400/30',
+    bg: 'from-bronze-400/20 via-bronze-400/5 to-transparent',
+    border: 'border-bronze-400/40',
+    glow: 'shadow-[0_0_20px_rgba(205,127,50,0.1)]',
     icon: Zap,
     iconColor: 'text-bronze-400',
     label: '季军',
     sublabel: '潜力无限',
-    scale: 0.9,
+    scale: 0.94,
   },
 ]
 
@@ -49,12 +52,13 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
             animate={{ rotate: 360 }}
             transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
           >
-            <Loader2 className="w-10 h-10 text-gold-400" />
+            <Trophy className="w-12 h-12 text-gold-400" />
           </motion.div>
           <motion.div
-            className="absolute inset-0 rounded-full border border-gold-500/20"
-            animate={{ scale: [1, 1.5, 1], opacity: [0.3, 0, 0.3] }}
+            className="absolute inset-0 rounded-full border-2 border-dashed border-gold-500/20"
+            animate={{ rotate: -360, scale: [1, 1.2, 1] }}
             transition={{ duration: 2, repeat: Infinity }}
+            style={{ margin: '-8px' }}
           />
         </div>
       </div>
@@ -65,11 +69,11 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
     return (
       <div className="text-center py-20 max-w-md mx-auto">
         <div className="relative inline-block mb-6">
-          <div className="w-20 h-20 rounded-2xl bg-arena-800 border border-arena-600/30 flex items-center justify-center mx-auto">
+          <div className="w-20 h-20 rounded-2xl bg-arena-800 border-2 border-arena-600/30 flex items-center justify-center mx-auto glow-gold">
             <Trophy className="w-10 h-10 text-arena-500" />
           </div>
           <motion.div
-            className="absolute -inset-3 rounded-2xl border border-arena-600/20"
+            className="absolute -inset-3 rounded-2xl border-2 border-dashed border-arena-600/20"
             animate={{ scale: [1, 1.1, 1], opacity: [0.3, 0.1, 0.3] }}
             transition={{ duration: 3, repeat: Infinity }}
           />
@@ -90,7 +94,7 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
           冠军榜单
         </h2>
         <p className="text-arena-400 text-sm flex items-center justify-center gap-2">
-          <Swords className="w-3.5 h-3.5 text-gold-400" />
+          <Flame className="w-3.5 h-3.5 text-gold-400" />
           经 AI 评审团认证的顶尖作品
         </p>
       </div>
@@ -114,12 +118,15 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
               }}
               className={`relative ${isFirst ? 'md:-mt-4 md:mb-4 md:col-start-2 md:row-start-1' : ''}`}
               style={{ scale: config.scale }}
-              whileHover={{ y: -6, transition: { duration: 0.2 } }}
+              whileHover={{ y: -8, transition: { duration: 0.2 } }}
             >
               {/* Card */}
               <div
-                className={`relative rounded-xl overflow-hidden bg-gradient-to-b from-arena-800/90 to-arena-900/90 border ${config.border} backdrop-blur-xl`}
+                className={`relative rounded-xl overflow-hidden bg-gradient-to-b from-arena-800/95 to-arena-900/95 border ${config.border} backdrop-blur-xl ${config.glow} transition-shadow duration-300 hover:shadow-gold`}
               >
+                {/* Top glow */}
+                <div className="absolute top-0 left-4 right-4 h-px bg-gradient-to-r from-transparent via-current to-transparent opacity-30" />
+
                 {/* Rank header */}
                 <div
                   className={`relative bg-gradient-to-b ${config.bg} px-4 py-3 flex items-center gap-2 border-b ${config.border}`}
@@ -174,13 +181,14 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
                   </div>
 
                   {/* Score bar */}
-                  <div className="h-1.5 bg-arena-700 rounded-full overflow-hidden mb-2">
+                  <div className="h-2 bg-arena-700 rounded-full overflow-hidden mb-2 relative">
                     <motion.div
-                      className={`h-full rounded-full bg-gradient-to-r ${config.color.replace('text-', 'from-')} to-current opacity-60`}
+                      className={`h-full rounded-full bg-gradient-to-r ${config.color.replace('text-', 'from-')} to-current opacity-70`}
                       initial={{ width: 0 }}
                       animate={{ width: `${((photo.score || 0) / 5) * 100}%` }}
                       transition={{ duration: 1, delay: 0.5 + index * 0.2 }}
                     />
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent animate-shimmer" />
                   </div>
 
                   {photo.review && (
@@ -197,9 +205,9 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
                   className="absolute -inset-4 rounded-2xl pointer-events-none -z-10"
                   animate={{
                     background: [
-                      'radial-gradient(ellipse at center, rgba(229, 166, 35, 0.12) 0%, transparent 70%)',
-                      'radial-gradient(ellipse at center, rgba(229, 166, 35, 0.2) 0%, transparent 70%)',
-                      'radial-gradient(ellipse at center, rgba(229, 166, 35, 0.12) 0%, transparent 70%)',
+                      'radial-gradient(ellipse at center, rgba(229, 166, 35, 0.15) 0%, transparent 70%)',
+                      'radial-gradient(ellipse at center, rgba(229, 166, 35, 0.25) 0%, transparent 70%)',
+                      'radial-gradient(ellipse at center, rgba(229, 166, 35, 0.15) 0%, transparent 70%)',
                     ],
                   }}
                   transition={{ duration: 2.5, repeat: Infinity, ease: 'easeInOut' }}

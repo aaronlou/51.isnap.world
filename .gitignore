@@ -35,3 +35,4 @@ backend/uploads/
 __pycache__/
 *.pyc
 .venv/
+.gstack/

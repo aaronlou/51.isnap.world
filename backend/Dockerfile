@@ -1,7 +1,7 @@
 # =====================
 # Build stage
 # =====================
-FROM rust:1.85-slim AS builder
+FROM rust:1.86-slim AS builder
 
 RUN apt-get update && \
     apt-get install -y pkg-config libssl-dev && \
@@ -18,7 +18,7 @@ RUN cargo build --release
 FROM debian:bookworm-slim
 
 RUN apt-get update && \
-    apt-get install -y ca-certificates && \
+    apt-get install -y ca-certificates curl && \
     rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

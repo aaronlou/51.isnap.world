@@ -23,11 +23,14 @@
     @apply relative rounded-xl overflow-hidden;
     background: linear-gradient(
       135deg,
-      rgba(15, 15, 26, 0.9) 0%,
-      rgba(26, 26, 46, 0.6) 100%
+      rgba(15, 15, 26, 0.95) 0%,
+      rgba(26, 26, 46, 0.7) 100%
     );
-    border: 1px solid rgba(37, 37, 69, 0.4);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    border: 1px solid rgba(229, 166, 35, 0.15);
+    box-shadow:
+      0 8px 32px rgba(0, 0, 0, 0.5),
+      0 0 0 1px rgba(229, 166, 35, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.03);
     backdrop-filter: blur(20px);
   }
 
@@ -41,13 +44,28 @@
     background: linear-gradient(
       90deg,
       transparent,
-      rgba(229, 166, 35, 0.3),
+      rgba(229, 166, 35, 0.4),
+      transparent
+    );
+  }
+
+  .glass-card::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 10%;
+    right: 10%;
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(229, 166, 35, 0.1),
       transparent
     );
   }
 
   .gold-gradient-text {
-    background: linear-gradient(135deg, #f2cd60, #e5a623, #c78a00);
+    background: linear-gradient(135deg, #fdf4d8, #f2cd60, #e5a623, #c78a00);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -59,20 +77,50 @@
   .neon-border::before {
     content: '';
     position: absolute;
-    inset: -1px;
+    inset: -1.5px;
     border-radius: inherit;
-    padding: 1px;
+    padding: 1.5px;
     background: linear-gradient(
       135deg,
-      rgba(229, 166, 35, 0.5),
-      rgba(255, 46, 99, 0.2),
-      rgba(0, 217, 255, 0.2)
+      rgba(229, 166, 35, 0.6),
+      rgba(255, 46, 99, 0.3),
+      rgba(0, 217, 255, 0.3),
+      rgba(229, 166, 35, 0.6)
+    );
+    background-size: 300% 300%;
+    animation: gradient-shift 4s ease infinite;
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    pointer-events: none;
+  }
+
+  .arena-ring {
+    position: relative;
+    border: 2px solid transparent;
+    background-clip: padding-box;
+  }
+  .arena-ring::before {
+    content: '';
+    position: absolute;
+    inset: -2px;
+    border-radius: inherit;
+    padding: 2px;
+    background: conic-gradient(
+      from 0deg,
+      rgba(229, 166, 35, 0.8),
+      rgba(255, 46, 99, 0.5),
+      rgba(0, 217, 255, 0.5),
+      rgba(229, 166, 35, 0.8)
     );
     -webkit-mask:
       linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
+    animation: spin-slow 8s linear infinite;
     pointer-events: none;
   }
 
@@ -84,7 +132,7 @@
     position: absolute;
     inset: 0;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
-    opacity: 0.02;
+    opacity: 0.03;
     pointer-events: none;
     z-index: 1;
   }
@@ -95,20 +143,30 @@
   }
 
   .glow-gold {
-    box-shadow: 0 0 30px rgba(229, 166, 35, 0.15),
-                0 0 60px rgba(229, 166, 35, 0.05);
+    box-shadow:
+      0 0 20px rgba(229, 166, 35, 0.2),
+      0 0 40px rgba(229, 166, 35, 0.1),
+      0 0 80px rgba(229, 166, 35, 0.05);
   }
 
   .glow-neon {
-    box-shadow: 0 0 30px rgba(0, 217, 255, 0.15),
-                0 0 60px rgba(0, 217, 255, 0.05);
+    box-shadow:
+      0 0 20px rgba(0, 217, 255, 0.2),
+      0 0 40px rgba(0, 217, 255, 0.1);
+  }
+
+  .glow-red {
+    box-shadow:
+      0 0 20px rgba(255, 46, 99, 0.2),
+      0 0 40px rgba(255, 46, 99, 0.1);
   }
 
   .btn-glow {
     @apply relative overflow-hidden transition-all duration-300;
   }
   .btn-glow:hover {
-    box-shadow: 0 0 25px rgba(229, 166, 35, 0.4);
+    box-shadow: 0 0 30px rgba(229, 166, 35, 0.5);
+    transform: translateY(-1px);
   }
   .btn-glow::after {
     content: '';
@@ -119,7 +177,7 @@
     height: 200%;
     background: radial-gradient(
       circle,
-      rgba(255, 255, 255, 0.1) 0%,
+      rgba(255, 255, 255, 0.15) 0%,
       transparent 60%
     );
     opacity: 0;
@@ -128,19 +186,62 @@
   .btn-glow:hover::after {
     opacity: 1;
   }
+
+  .scanline-overlay {
+    position: relative;
+    overflow: hidden;
+  }
+  .scanline-overlay::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0, 0, 0, 0.03) 2px,
+      rgba(0, 0, 0, 0.03) 4px
+    );
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .hex-bg {
+    background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0l25.98 15v30L30 60 4.02 45V15z' fill='none' stroke='rgba(229,166,35,0.03)' stroke-width='1'/%3E%3C/svg%3E");
+    background-size: 60px 60px;
+  }
+
+  .crt-flicker {
+    animation: crt-flicker 0.15s infinite;
+  }
 }
 
 @layer utilities {
   .text-shadow-glow {
-    text-shadow: 0 0 40px rgba(229, 166, 35, 0.3),
-                 0 2px 4px rgba(0, 0, 0, 0.8);
+    text-shadow:
+      0 0 40px rgba(229, 166, 35, 0.4),
+      0 0 80px rgba(229, 166, 35, 0.2),
+      0 2px 4px rgba(0, 0, 0, 0.9);
   }
   .text-shadow-neon {
-    text-shadow: 0 0 20px rgba(0, 217, 255, 0.4);
+    text-shadow:
+      0 0 20px rgba(0, 217, 255, 0.5),
+      0 0 40px rgba(0, 217, 255, 0.3);
+  }
+  .text-shadow-red {
+    text-shadow:
+      0 0 20px rgba(255, 46, 99, 0.5),
+      0 0 40px rgba(255, 46, 99, 0.3);
   }
   .bg-gradient-radial {
     background-image: radial-gradient(var(--tw-gradient-stops));
   }
+}
+
+@keyframes crt-flicker {
+  0% { opacity: 0.97; }
+  50% { opacity: 1; }
+  100% { opacity: 0.98; }
 }
 
 ::-webkit-scrollbar {

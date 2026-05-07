@@ -6,7 +6,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use crate::domain::{errors::DomainError, score::Score, scoring::ScoringEngine};
 
 const GEMINI_API_URL: &str =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash:generateContent";
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
 
 const PROMPT: &str = r#"You are a professional photography critic. Analyze this photo and provide:
 1. A score from 0.0 to 5.0 (5 being masterpiece level)
