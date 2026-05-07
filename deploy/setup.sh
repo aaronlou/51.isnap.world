@@ -26,7 +26,14 @@ fi
 # ============================================
 echo "=== 检测操作系统 ==="
 OS=""
-if command -v apt &>/dev/null; then
+if grep -qi "amazon linux" /etc/system-release 2>/dev/null; then
+    OS="amazon"
+    PKG_INSTALL="dnf install -y -q"
+    PKG_UPDATE="dnf makecache -q"
+    NGINX_CONF_DIR="/etc/nginx/conf.d"
+    NGINX_ENABLED_DIR="/etc/nginx/conf.d"
+    info "检测到 Amazon Linux (dnf)"
+elif command -v apt &>/dev/null; then
     OS="debian"
     PKG_INSTALL="apt install -y -qq"
     PKG_UPDATE="apt update -qq"
@@ -62,8 +69,10 @@ if [[ "$OS" == "debian" ]]; then
     $PKG_UPDATE
     $PKG_INSTALL curl build-essential pkg-config libssl-dev nginx git
 elif [[ "$OS" == "rhel" ]]; then
-    # EPEL 提供 nginx 和 certbot
     $PKG_INSTALL epel-release
+    $PKG_UPDATE
+    $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip rsync
+elif [[ "$OS" == "amazon" ]]; then
     $PKG_UPDATE
     $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip rsync
 fi
@@ -101,7 +110,7 @@ echo ""
 echo "=== 3. 安装 Node.js (>= 18) ==="
 
 # 清理冲突：移除旧版包和旧 nodesource 仓库
-if [[ "$OS" == "rhel" ]]; then
+if [[ "$OS" == "rhel" || "$OS" == "amazon" ]]; then
     dnf remove -y -q nodejs nodejs-full-i18n npm 2>/dev/null || true
     rm -f /etc/yum.repos.d/nodesource*.repo /etc/yum.repos.d/N|Solid*.repo 2>/dev/null || true
 fi
@@ -344,7 +353,7 @@ if [[ "$OS" == "debian" ]]; then
     # Debian 需要确保 symlink 存在
     ln -sf "$NGINX_CONF" "$NGINX_ENABLED_DIR/"
     rm -f /etc/nginx/sites-enabled/default
-elif [[ "$OS" == "rhel" ]]; then
+elif [[ "$OS" == "rhel" || "$OS" == "amazon" ]]; then
     # CentOS: 禁用默认站点（如果存在）
     rm -f /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf 2>/dev/null || true
 fi
@@ -370,7 +379,7 @@ if [[ "$SERVER_NAME" != "_" ]]; then
     echo "  HTTPS 配置（必须）:"
     if [[ "$OS" == "debian" ]]; then
         echo "    certbot --nginx -d $SERVER_NAME"
-    elif [[ "$OS" == "rhel" ]]; then
+    elif [[ "$OS" == "rhel" || "$OS" == "amazon" ]]; then
         echo "    dnf install -y certbot python3-certbot-nginx"
         echo "    certbot --nginx -d $SERVER_NAME"
     fi
