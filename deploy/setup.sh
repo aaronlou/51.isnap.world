@@ -72,9 +72,17 @@ info "系统依赖已安装"
 # ============================================
 echo ""
 echo "=== 2. 安装 Rust ==="
-if command -v cargo &>/dev/null; then
-    info "Rust 已存在: $(rustc --version)"
-else
+# 查找已有的 cargo（sudo 的 PATH 可能不含 $HOME/.cargo/bin）
+RUST_OK=false
+for CARGO_BIN in /root/.cargo/bin/cargo "$HOME/.cargo/bin/cargo" /usr/local/bin/cargo /usr/bin/cargo; do
+    if [[ -x "$CARGO_BIN" ]]; then
+        RUST_OK=true
+        export PATH="$(dirname "$CARGO_BIN"):$PATH"
+        info "Rust 已存在: $("$CARGO_BIN" --version)"
+        break
+    fi
+done
+if ! $RUST_OK; then
     # 国内用户可设置镜像加速：
     #   export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
     #   export RUSTUP_UPDATE_ROOT=https://mirrors.ustc.edu.cn/rust-static/rustup
