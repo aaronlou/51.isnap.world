@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ============================================
 # Photo Battle Arena - 部署脚本 (Nginx + systemd)
+# 支持 Ubuntu/Debian (apt) 和 CentOS/RHEL (dnf)
 # 用法: sudo bash setup.sh
-# 在 Ubuntu 22.04+ / Debian 12+ 上测试
 # ============================================
 set -euo pipefail
 
@@ -24,11 +24,49 @@ if [[ $EUID -ne 0 ]]; then
 fi
 
 # ============================================
+echo "=== 检测操作系统 ==="
+OS=""
+if command -v apt &>/dev/null; then
+    OS="debian"
+    PKG_INSTALL="apt install -y -qq"
+    PKG_UPDATE="apt update -qq"
+    NGINX_USER="www-data"
+    NGINX_CONF_DIR="/etc/nginx/sites-available"
+    NGINX_ENABLED_DIR="/etc/nginx/sites-enabled"
+elif command -v dnf &>/dev/null; then
+    OS="rhel"
+    PKG_INSTALL="dnf install -y -q"
+    PKG_UPDATE="dnf makecache -q"
+    NGINX_USER="nginx"
+    NGINX_CONF_DIR="/etc/nginx/conf.d"
+    NGINX_ENABLED_DIR="/etc/nginx/conf.d"  # CentOS 不使用 sites-enabled
+    info "检测到 CentOS/RHEL (dnf)"
+elif command -v yum &>/dev/null; then
+    OS="rhel"
+    PKG_INSTALL="yum install -y -q"
+    PKG_UPDATE="yum makecache -q"
+    NGINX_USER="nginx"
+    NGINX_CONF_DIR="/etc/nginx/conf.d"
+    NGINX_ENABLED_DIR="/etc/nginx/conf.d"
+    info "检测到 CentOS/RHEL (yum)"
+else
+    err "不支持的发行版，仅支持 apt (Debian/Ubuntu) 或 dnf/yum (CentOS/RHEL)"
+    exit 1
+fi
+info "操作系统: $OS"
+
+# ============================================
+echo ""
 echo "=== 1. 安装系统依赖 ==="
-# Rust 后端需要: openssl, pkg-config
-# Nginx + 前端需要: nginx, curl (用于 nvm)
-apt update -qq
-apt install -y -qq curl build-essential pkg-config libssl-dev nginx git
+if [[ "$OS" == "debian" ]]; then
+    $PKG_UPDATE
+    $PKG_INSTALL curl build-essential pkg-config libssl-dev nginx git
+elif [[ "$OS" == "rhel" ]]; then
+    # EPEL 提供 nginx 和 certbot
+    $PKG_INSTALL epel-release
+    $PKG_UPDATE
+    $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip python3-venv nodejs npm rsync
+fi
 info "系统依赖已安装"
 
 # ============================================
@@ -44,20 +82,23 @@ fi
 
 # ============================================
 echo ""
-echo "=== 3. 安装 Node.js (fnm + LTS) ==="
+echo "=== 3. 安装 Node.js ==="
 if ! command -v node &>/dev/null; then
-    # 安装 fnm (轻量 Node 版本管理器)
-    curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
-    export PATH="$HOME/.local/share/fnm:$PATH"
-    # 兼容 bash -s -- 可能导致 fnm 不在 PATH，所以直接用 bash 执行
-    eval "$(fnm env --use-on-cd --shell bash)" 2>/dev/null || true
-    # 如果 fnm 装不上，fallback 到 apt
-    if command -v fnm &>/dev/null; then
-        fnm install --lts
-        fnm use lts-latest
+    if [[ "$OS" == "debian" ]]; then
+        # 用 fnm 安装（避免系统 Node 版本过旧）
+        curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+        export PATH="$HOME/.local/share/fnm:$PATH"
+        eval "$(fnm env --use-on-cd --shell bash)" 2>/dev/null || true
+        if command -v fnm &>/dev/null; then
+            fnm install --lts
+            fnm use lts-latest
+        else
+            warn "fnm 安装失败，回退到系统 Node"
+            $PKG_INSTALL nodejs npm
+        fi
     else
-        warn "fnm 安装失败，回退到系统 Node"
-        apt install -y -qq nodejs npm
+        # CentOS 已随 epel 安装 nodejs
+        info "Node.js 已在 epel 步骤安装"
     fi
     info "Node.js 已安装: $(node -v)"
 else
@@ -74,7 +115,6 @@ if [[ -n "$REPO_URL" ]]; then
         git clone --branch "$BRANCH" "$REPO_URL" "$INSTALL_DIR"
     fi
 else
-    # 从本地复制（脚本假设在仓库 deploy/ 目录下运行）
     SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
     if [[ "$SCRIPT_DIR" != "$INSTALL_DIR" ]]; then
         mkdir -p "$INSTALL_DIR"
@@ -91,7 +131,6 @@ echo ""
 echo "=== 5. 创建目录和用户 ==="
 mkdir -p "$INSTALL_DIR"/{data,uploads,backend,frontend}
 
-# 创建专用用户（如果没有）
 if ! id -u photo-battle &>/dev/null; then
     useradd -r -s /bin/false -m -d "$INSTALL_DIR" photo-battle
     info "创建用户: photo-battle"
@@ -117,7 +156,6 @@ echo ""
 echo "=== 6. 构建后端 ==="
 cd "$INSTALL_DIR/backend"
 cargo build --release
-# 减小二进制体积
 strip target/release/photo-battle-backend 2>/dev/null || true
 info "后端构建完成 (size: $(du -h target/release/photo-battle-backend | cut -f1))"
 
@@ -135,10 +173,10 @@ chown -R photo-battle:photo-battle "$INSTALL_DIR/frontend/dist"
 echo ""
 echo "=== 8. 安装 Python + VolcEngine 评分服务 ==="
 if ! command -v python3 &>/dev/null; then
-    apt install -y -qq python3 python3-venv python3-pip
+    $PKG_INSTALL python3 python3-venv python3-pip
 fi
 
-# 创建虚拟环境安装依赖（隔离项目依赖，避免污染系统 Python）
+# 创建虚拟环境
 if [[ ! -d "$INSTALL_DIR/.venv" ]]; then
     python3 -m venv "$INSTALL_DIR/.venv"
 fi
@@ -148,12 +186,16 @@ fi
 "$INSTALL_DIR/.venv/bin/pip" install --quiet torch --index-url https://download.pytorch.org/whl/cpu
 "$INSTALL_DIR/.venv/bin/pip" install --quiet -r "$INSTALL_DIR/backend/scripts/requirements.txt"
 
-# 预先下载 CLIP 模型（避免首次请求时等待）
+# 预先下载 CLIP 模型
 if [[ -n "${HF_TOKEN:-}" ]]; then
     warn "检测到 HF_TOKEN，使用认证下载（速度更快）"
 fi
 if [[ -n "${HF_ENDPOINT:-}" ]]; then
     info "使用 HuggingFace 镜像: $HF_ENDPOINT"
+fi
+# 先加载 .env 中的 HF 配置
+if [[ -f "$INSTALL_DIR/.env" ]]; then
+    set -a; source "$INSTALL_DIR/.env"; set +a
 fi
 "$INSTALL_DIR/.venv/bin/python" -c "
 from transformers import CLIPModel, CLIPProcessor
@@ -172,7 +214,6 @@ info "VolcEngine 评分服务已启动（首次启动需下载模型权重，用
 # ============================================
 echo ""
 echo "=== 9. 安装后端 systemd 服务 ==="
-# 替换 service 文件中的 WorkingDirectory，使用正确的用户
 cp "$INSTALL_DIR/deploy/photo-backend.service" /etc/systemd/system/photo-backend.service
 sed -i "s/User=www-data/User=photo-battle/" /etc/systemd/system/photo-backend.service
 systemctl daemon-reload
@@ -183,11 +224,18 @@ info "后端服务已启动: systemctl status photo-backend"
 # ============================================
 echo ""
 echo "=== 10. 配置 Nginx ==="
-NGINX_CONF="/etc/nginx/sites-available/photo-battle"
+NGINX_CONF="$NGINX_CONF_DIR/photo-battle.conf"
 cp "$INSTALL_DIR/deploy/nginx.conf" "$NGINX_CONF"
 sed -i "s/server_name _;/server_name $SERVER_NAME;/" "$NGINX_CONF"
-ln -sf "$NGINX_CONF" /etc/nginx/sites-enabled/
-rm -f /etc/nginx/sites-enabled/default
+
+if [[ "$OS" == "debian" ]]; then
+    # Debian 需要确保 symlink 存在
+    ln -sf "$NGINX_CONF" "$NGINX_ENABLED_DIR/"
+    rm -f /etc/nginx/sites-enabled/default
+elif [[ "$OS" == "rhel" ]]; then
+    # CentOS: 禁用默认站点（如果存在）
+    rm -f /etc/nginx/conf.d/default.conf /etc/nginx/conf.d/welcome.conf 2>/dev/null || true
+fi
 
 nginx -t && systemctl reload nginx
 info "Nginx 已加载"
@@ -199,6 +247,7 @@ info "部署完成！"
 echo ""
 echo "  后端服务:  systemctl status photo-backend"
 echo "  后端日志:  journalctl -u photo-backend -f"
+echo "  VolcEngine: journalctl -u volcengine -f"
 echo "  Nginx:     systemctl status nginx"
 echo "  配置目录:  $INSTALL_DIR"
 echo "  .env 文件: $INSTALL_DIR/.env（请确保已配置密钥）"
@@ -207,6 +256,11 @@ if [[ "$SERVER_NAME" != "_" ]]; then
     echo "  访问地址: http://$SERVER_NAME"
     echo ""
     echo "  HTTPS 配置（必须）:"
-    echo "    certbot --nginx -d $SERVER_NAME"
+    if [[ "$OS" == "debian" ]]; then
+        echo "    certbot --nginx -d $SERVER_NAME"
+    elif [[ "$OS" == "rhel" ]]; then
+        echo "    dnf install -y certbot python3-certbot-nginx"
+        echo "    certbot --nginx -d $SERVER_NAME"
+    fi
 fi
 echo "=========================================="

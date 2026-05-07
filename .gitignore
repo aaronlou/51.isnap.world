@@ -24,6 +24,9 @@ backend/target/
 .DS_Store
 Thumbs.db
 
+# Git bundle
+*.bundle
+
 # Database
 backend/photos.db
 backend/photos.db.bak
