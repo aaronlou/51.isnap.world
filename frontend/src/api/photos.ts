@@ -14,11 +14,7 @@ export async function fetchLeaderboard(): Promise<Photo[]> {
 export async function uploadPhoto(file: File): Promise<Photo> {
   const formData = new FormData();
   formData.append('file', file);
-  const res = await apiClient.post<Photo>('/api/upload', formData, {
-    headers: {
-      'Content-Type': undefined, // 让浏览器自动生成 multipart/form-data; boundary=...
-    },
-  });
+  const res = await apiClient.post<Photo>('/api/upload', formData);
   return res.data;
 }
 
