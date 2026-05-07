@@ -130,7 +130,31 @@ chown -R photo-battle:photo-battle "$INSTALL_DIR/frontend/dist"
 
 # ============================================
 echo ""
-echo "=== 8. 安装 systemd 服务 ==="
+echo "=== 8. 安装 Python + VolcEngine 评分服务 ==="
+if ! command -v python3 &>/dev/null; then
+    apt install -y -qq python3 python3-venv python3-pip
+fi
+
+# 创建虚拟环境安装依赖（隔离项目依赖，避免污染系统 Python）
+if [[ ! -d "$INSTALL_DIR/.venv" ]]; then
+    python3 -m venv "$INSTALL_DIR/.venv"
+fi
+
+# PyTorch CPU 版 + 其他依赖
+"$INSTALL_DIR/.venv/bin/pip" install --quiet --upgrade pip
+"$INSTALL_DIR/.venv/bin/pip" install --quiet torch --index-url https://download.pytorch.org/whl/cpu
+"$INSTALL_DIR/.venv/bin/pip" install --quiet -r "$INSTALL_DIR/backend/scripts/requirements.txt"
+
+# VolcEngine systemd 服务
+cp "$INSTALL_DIR/deploy/volcengine.service" /etc/systemd/system/volcengine.service
+systemctl daemon-reload
+systemctl enable volcengine
+systemctl restart volcengine
+info "VolcEngine 评分服务已启动（首次启动需下载模型权重，用时约 1-3 分钟）"
+
+# ============================================
+echo ""
+echo "=== 9. 安装后端 systemd 服务 ==="
 # 替换 service 文件中的 WorkingDirectory，使用正确的用户
 cp "$INSTALL_DIR/deploy/photo-backend.service" /etc/systemd/system/photo-backend.service
 sed -i "s/User=www-data/User=photo-battle/" /etc/systemd/system/photo-backend.service
@@ -141,7 +165,7 @@ info "后端服务已启动: systemctl status photo-backend"
 
 # ============================================
 echo ""
-echo "=== 9. 配置 Nginx ==="
+echo "=== 10. 配置 Nginx ==="
 NGINX_CONF="/etc/nginx/sites-available/photo-battle"
 cp "$INSTALL_DIR/deploy/nginx.conf" "$NGINX_CONF"
 sed -i "s/server_name _;/server_name $SERVER_NAME;/" "$NGINX_CONF"

@@ -1,0 +1,24 @@
+[Unit]
+Description=VolcEngine Aesthetic Scoring Service
+After=network.target
+
+[Service]
+Type=simple
+User=photo-battle
+WorkingDirectory=/opt/photo-battle/backend/scripts
+
+ExecStart=/opt/photo-battle/.venv/bin/python volcengine_aesthetic_server.py
+Restart=always
+RestartSec=10
+
+Environment=VOLCENGINE_PORT=8001
+Environment=VOLCENGINE_DEVICE=cpu
+
+# 首次启动可能需要较长时间下载模型权重
+TimeoutStartSec=300
+
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

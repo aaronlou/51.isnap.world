@@ -21,7 +21,8 @@ Environment=BASE_URL=http://localhost:8080
 Environment=DATABASE_PATH=/opt/photo-battle/data/photos.db
 Environment=UPLOAD_DIR=/opt/photo-battle/uploads
 Environment=ARTIMUSE_ENABLED=false
-Environment=VOLCENGINE_ENABLED=false
+Environment=VOLCENGINE_ENABLED=true
+Environment=VOLCENGINE_URL=http://127.0.0.1:8001
 
 # 日志
 StandardOutput=journal
