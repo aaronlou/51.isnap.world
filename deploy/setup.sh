@@ -126,19 +126,30 @@ if ! $NODE_OK; then
         info "Node.js 下载源: $NODE_MIRROR"
         if curl -fsSL --retry 3 --retry-delay 5 --connect-timeout 30 \
             "$NODE_MIRROR/$NODE_VERSION/node-$NODE_VERSION-linux-x64.tar.xz" \
-            -o /tmp/node.tar.xz; then
+            -o /tmp/node.tar.xz && \
             tar -xf /tmp/node.tar.xz -C /usr/local --strip-components=1
+        then
             rm -f /tmp/node.tar.xz
-            info "Node.js 已安装: $(node -v)"
-        else
-            # 方案三: nodesource 仓库
-            warn "二进制下载失败，尝试 nodesource..."
+            hash -r  # 刷新 PATH 缓存
+            if command -v node &>/dev/null; then
+                info "Node.js 已安装: $(node -v)"
+            else
+                warn "二进制解压完成但 node 不在 PATH，尝试查找..."
+                ls -la /usr/local/bin/node 2>/dev/null && \
+                    export PATH="/usr/local/bin:$PATH" || \
+                    warn "node 未找到，检查 tarball 结构..."
+                command -v node &>/dev/null && info "Node.js 已安装: $(node -v)"
+            fi
+        fi
+        # 二进制方案失败（下载失败或解压后 node 不可用），走 nodesource
+        if ! command -v node &>/dev/null; then
+            warn "二进制方案失败，尝试 nodesource..."
             curl -fsSL --retry 3 https://rpm.nodesource.com/setup_20.x | bash -
             dnf install -y -q --allowerasing nodejs 2>/dev/null || \
             dnf install -y -q nodejs
         fi
     fi
-    info "Node.js 已安装: $(node -v)"
+    command -v node &>/dev/null && info "Node.js 已安装: $(node -v)"
 fi
 
 # ============================================
