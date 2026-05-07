@@ -7,7 +7,7 @@
 set -euo pipefail
 
 # --- 配置（按需修改）---
-INSTALL_DIR="/home/admin/51.isnap.world"
+INSTALL_DIR="/home/ec2-user/51.isnap.world"
 REPO_URL=""       # 如 git@github.com:user/repo.git，留空则使用本地目录
 BRANCH="main"
 SERVER_NAME="_"   # 你的域名，如 example.com
