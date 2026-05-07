@@ -1,114 +1,60 @@
 # 📸 五一假期 · 快门奇遇记 (Shutter Quest)
 
-一个轻松有趣的 AI 摄影探索平台。上传你的 JPG 摄影作品，让 AI 摄影伙伴为你带来意想不到的专业点评和灵感启发。
+一个轻松有趣的 AI 摄影探索平台。上传 JPG 摄影作品，让 AI 伙伴为你带来专业点评和灵感启发。
 
-支持两种 AI 点评引擎：
-- **Gemini 2.0 Pro** - Google 多模态大模型，通用图像理解与启发
-- **ArtiMuse** (CVPR 2026) - 专业图像美学评估模型，8 维度深度洞察
+## 评分引擎（优先级链）
 
-## 功能
+| 引擎 | 优先级 | 说明 | 依赖 |
+|------|--------|------|------|
+| **VolcEngine** | 🥇 最高 | 本地 CLIP-ViT-L/14 + LAION MLP 美学模型，0-1 分标准化评分 | Python + PyTorch CPU |
+| **ArtiMuse** | 🥈 | CVPR 2026 专业图像美学评估模型，8 维度深度洞察 | GPU ≥ 16GB |
+| **Gemini 2.0 Pro** | 🥉 | Google 多模态大模型，通用图像理解 | API Key |
+| **Simulated** | ⚪ 兜底 | 所有引擎不可用时返回模拟评分 | 无需额外配置 |
 
-- 🎯 **上传作品**：支持 JPG 格式，最大 30MB
-- 🤖 **双引擎 AI 评分**：
-  - Gemini：通用评审，给出综合分数和点评
-  - ArtiMuse：专业美学评估，从 8 个维度深度分析（构图、视觉元素、技术执行、原创性、主题表达、情感共鸣、整体完形、综合评价）
-- 🏆 **冠军殿堂**：实时展示评分最高的前三名作品
-- 🎮 **游戏化体验**：街机风格的界面设计，评分揭晓动画，等级评定系统
-- 🌅 **五一假期主题**：专属节日氛围，假期摄影大乱斗
+评分协调器按优先级顺序尝试，一个引擎成功即返回，失败自动降级。
 
 ## 技术栈
 
-- **前端**：React + TypeScript + Vite + Tailwind CSS + Framer Motion
-- **后端**：Rust + Axum + Tokio
-- **AI 引擎**：Gemini 2.0 Pro / ArtiMuse (InternVL-3 架构)
+- **前端**：React 18 + TypeScript + Vite 5 + Tailwind CSS + Framer Motion
+- **后端**：Rust + Axum + Tokio + rusqlite + SQLite
+- **评分引擎**：VolcEngine (LAION Aesthetics V2) / ArtiMuse / Gemini 2.0 Pro
+- **部署**：Docker Compose / Nginx + systemd
 
-## 快速开始
+## 快速开始（开发环境）
 
 ### 1. 配置环境变量
 
 ```bash
-cp .env .env.local
-# 编辑 .env.local
+cp .env.example .env
+# 编辑 .env，填入 GEMINI_API_KEY
 ```
 
-### 2. 启动后端
+### 2. 启动 VolcEngine 评分服务（可选但推荐）
+
+```bash
+cd backend/scripts
+pip install torch --index-url https://download.pytorch.org/whl/cpu
+pip install -r requirements.txt
+python volcengine_aesthetic_server.py
+# 监听 http://127.0.0.1:8001
+```
+
+### 3. 启动后端
 
 ```bash
 cd backend
 cargo run
+# 监听 http://localhost:3001
 ```
 
-后端服务将在 `http://localhost:3001` 启动。
-
-### 3. 启动前端
+### 4. 启动前端
 
 ```bash
 cd frontend
 npm install
 npm run dev
+# 监听 http://localhost:3000
 ```
-
-前端将在 `http://localhost:3000` 启动。
-
-### 4. 打开浏览器访问
-
-打开 http://localhost:3000 即可使用！
-
----
-
-## 🔬 ArtiMuse 集成（可选，推荐用于专业评分）
-
-[ArtiMuse](https://github.com/thunderbolt215/ArtiMuse) 是 CVPR 2026 的专业图像美学评估模型，相比 Gemini 更专注于摄影美学领域，能提供 8 个维度的深度专业点评。
-
-### 前置要求
-
-- **GPU**：NVIDIA GPU，显存 ≥ 16GB（推荐 24GB）
-- **Python**：≥ 3.9
-- **CUDA**：已安装
-
-### 部署步骤
-
-1. **克隆 ArtiMuse 到服务器**
-
-```bash
-git clone https://github.com/thunderbolt215/ArtiMuse.git
-cd ArtiMuse
-```
-
-2. **创建环境并安装依赖**
-
-```bash
-conda create -n artimuse python=3.10
-conda activate artimuse
-pip install -r requirements.txt
-pip install fastapi uvicorn
-# 可选加速
-pip install flash-attn --no-build-isolation
-```
-
-3. **下载模型权重**
-
-从 [Hugging Face](https://huggingface.co/Thunderbolt215215/ArtiMuse) 或 [ModelScope](https://modelscope.cn/models/thunderbolt/ArtiMuse) 下载模型，放到 `checkpoints/ArtiMuse/` 目录下。
-
-4. **启动 ArtiMuse API 服务**
-
-```bash
-conda activate artimuse
-python api_server.py --model_name ArtiMuse --device cuda:0 --port 8000
-```
-
-服务将在 `http://localhost:8000` 启动，模型加载一次后常驻内存。
-
-5. **启用 ArtiMuse 评分**
-
-编辑摄影大乱斗项目的 `.env.local`：
-
-```bash
-ARTIMUSE_ENABLED=true
-ARTIMUSE_URL=http://127.0.0.1:8000
-```
-
-然后重启摄影大乱斗后端即可。
 
 ---
 
@@ -116,11 +62,11 @@ ARTIMUSE_URL=http://127.0.0.1:8000
 
 | 方法 | 路径 | 说明 |
 |------|------|------|
-| GET | /api/health | 健康检查 |
-| POST | /api/upload | 上传照片 |
-| GET | /api/photos | 获取所有照片 |
-| POST | /api/photos/:id/score | 对照片进行 AI 评分 |
-| GET | /api/leaderboard | 获取排行榜（前三名） |
+| GET | `/api/health` | 健康检查 |
+| POST | `/api/upload` | 上传照片 (multipart, max 30MB) |
+| GET | `/api/photos` | 获取所有照片 |
+| POST | `/api/photos/:id/score` | 对照片进行 AI 评分 |
+| GET | `/api/leaderboard` | 获取排行榜（前三名） |
 
 ## 评分等级
 
@@ -133,36 +79,61 @@ ARTIMUSE_URL=http://127.0.0.1:8000
 | 2.0+ | 入门旅行者 |
 | < 2.0 | 假期练习中 |
 
-## 后端模块结构
+---
+
+## 项目架构
+
+### DDD 四层架构
 
 ```
 backend/src/
-├── main.rs          # 入口，路由注册，服务启动
-├── models.rs        # Photo、ScoreResponse 数据结构
-├── state.rs         # AppState 及构造方法
-├── utils.rs         # MAX_FILE_SIZE、is_jpeg 工具函数
-├── routes/
-│   ├── mod.rs       # 路由模块导出
-│   ├── health.rs    # /api/health
-│   ├── leaderboard.rs
-│   └── photos.rs    # 上传、列表、评分
-└── services/
-    ├── mod.rs
-    ├── artimuse.rs  # ArtiMuse API 调用
-    └── gemini.rs    # Gemini API 调用
+├── main.rs                    # 组合根（DI 容器）
+├── domain/                    # 领域层 — 纯业务逻辑，无外部依赖
+│   ├── photo.rs               # 实体 + 值对象 (PhotoId)
+│   ├── score.rs               # 值对象 (Score) — 校验 + 归一化
+│   ├── file.rs                # 值对象 (FileUpload) — 文件校验
+│   ├── scoring.rs             # 领域服务 (ScoringCoordinator) + 端口 (ScoringEngine)
+│   ├── repository.rs          # 端口 (PhotoRepository, FileStorage)
+│   └── errors.rs              # DomainError 枚举
+├── application/               # 应用层 — 用例 + DTO
+│   ├── dto.rs                 # PhotoDto, ScoreResultDto
+│   └── use_cases/
+│       ├── upload_photo.rs
+│       ├── score_photo.rs
+│       ├── list_photos.rs
+│       └── get_leaderboard.rs
+├── infrastructure/            # 基础设施层 — 实现领域端口
+│   ├── db/sqlite.rs           # PhotoRepository 实现 (rusqlite)
+│   ├── http/
+│   │   ├── gemini_client.rs   # ScoringEngine 实现 + ACL
+│   │   ├── artimuse_client.rs # ScoringEngine 实现 + ACL
+│   │   └── volcengine_client.rs # ScoringEngine 实现 + ACL
+│   └── storage/
+│       └── local_file_storage.rs # FileStorage 实现
+└── presentation/              # 表现层 — Axum 路由 + 错误映射
+    ├── error.rs               # DomainError → HTTP 状态码
+    └── routes/
+        ├── photos.rs
+        ├── leaderboard.rs
+        └── health.rs
 ```
 
-## 注意事项
+### 评分引擎调度架构
 
-- 如果没有配置任何评分引擎，系统会返回模拟评分（3.5 分）
-- 如果同时配置了 Gemini 和 ArtiMuse，优先使用 ArtiMuse（当 `ARTIMUSE_ENABLED=true` 时）
-- 所有上传的照片保存在 `backend/uploads/` 目录下
-- 数据存储在 `/app/data/photos.db`，重启后端不会清空
-- ArtiMuse 首次加载模型需要数分钟（取决于 GPU 性能），后续评分秒级响应
+```
+┌─────────────┐     ┌──────────────────┐
+│  Scoring     │────▶│  VolcEngine       │ ← 优先
+│  Coordinator │────▶│  (本地 Python CPU) │
+│  (领域服务)    │────▶│  ArtiMuse         │ ← 降级
+│              │────▶│  (GPU 服务)        │
+│              │────▶│  Gemini 2.0 Pro   │ ← 降级
+│              │────▶│  Simulated        │ ← 最终兜底
+└─────────────┘     └──────────────────┘
+```
 
 ---
 
-## Docker 部署（推荐）
+## Docker 部署
 
 ### 前置要求
 
@@ -172,14 +143,14 @@ backend/src/
 ### 快速启动
 
 ```bash
-# 1. 从模板创建环境配置并填入 API Key
+# 1. 配置环境变量
 cp .env.example .env
-# 编辑 .env，填入 GEMINI_API_KEY 等配置
+# 编辑 .env，填入 GEMINI_API_KEY
 
-# 2. 一键启动所有服务
+# 2. 一键启动
 docker compose up -d
 
-# 3. 打开浏览器访问
+# 3. 访问
 open http://localhost:8080
 ```
 
@@ -188,62 +159,98 @@ open http://localhost:8080
 ```
 ┌─────────────┐     ┌──────────────┐     ┌──────────────────┐
 │  浏览器      │────▶│  前端 Nginx   │────▶│  Rust 后端 API    │
-│  localhost   │     │  port 8080   │     │  port 3001       │
-│   :8080      │     │  /api → backend │     │                  │
+│  port 8080  │     │  port 80     │     │  port 3001       │
+│             │     │  /api 反代    │     │                  │
 └─────────────┘     └──────────────┘     └───┬──────────────┘
-                                             │
-                                             ▼
-                                      ┌──────────────────┐
-                                      │ VolcEngine 美学评分  │
-                                      │ port 8001         │
-                                      │ CLIP + LAION MLP  │
-                                      └──────────────────┘
-```
-
-### 各服务说明
-
-| 服务 | 镜像 | 端口 |
-|------|------|------|
-| `frontend` | nginx (静态文件) | 8080 |
-| `backend` | Rust (Axum) | 3001 |
-| `volcengine` | Python (FastAPI) | 8001 |
-
-### 数据持久化
-
-Docker Compose 使用命名卷持久化数据，`docker compose down` 不会丢失：
-
-- `backend_uploads` → 上传的照片
-- `backend_db` → SQLite 数据库（含评分记录）
-- `volcengine_cache` → CLIP 模型权重缓存
-
-### 查看日志
-
-```bash
-# 所有服务
-docker compose logs -f
-
-# 单个服务
-docker compose logs -f backend
-docker compose logs -f volcengine
+                                              │
+                                              ▼
+                                       ┌──────────────────┐
+                                       │ VolcEngine 美学评分  │
+                                       │ port 8001         │
+                                       │ CLIP + LAION MLP  │
+                                       └──────────────────┘
 ```
 
 ### 常用命令
 
 ```bash
-# 构建并启动
-docker compose up -d
-
-# 查看状态
-docker compose ps
-
-# 停止
-docker compose down
-
-# 重新构建（代码变更后）
-docker compose build --no-cache backend
-docker compose up -d
-
-# 完全重置（清空所有数据）
-docker compose down -v
-docker compose up -d
+docker compose up -d              # 启动
+docker compose logs -f backend    # 查看后端日志
+docker compose down               # 停止
+docker compose build --no-cache backend && docker compose up -d  # 代码变更后重建
 ```
+
+---
+
+## 部署到服务器（Nginx + systemd，无需 Docker）
+
+适合在 Ubuntu 22.04+ / Debian 12+ / CentOS Stream 9 上使用。
+
+### 前置准备
+
+```bash
+# 克隆代码
+git clone <your-repo> /home/admin/51.isnap.world
+cd /home/admin/51.isnap.world
+
+# 配置环境变量
+cp deploy/.env.example .env
+vim .env   # 填入 GEMINI_API_KEY，可选 HF_TOKEN
+
+# 国内加速（可选）
+export RUSTUP_DIST_SERVER=https://mirrors.ustc.edu.cn/rust-static
+export NODEJS_MIRROR=https://npmmirror.com/mirrors/node
+```
+
+### 一键部署
+
+```bash
+sudo bash deploy/setup.sh
+```
+
+脚本自动完成：
+1. 安装系统依赖（自动识别 apt/dnf）
+2. 安装 Rust
+3. 安装 Node.js ≥ 18
+4. 构建前后端
+5. 安装 Python 虚拟环境 + VolcEngine 评分服务
+6. 配置 systemd 服务（后端 + VolcEngine）
+7. 配置 Nginx 反向代理
+
+### 部署后维护
+
+```bash
+# 查看日志
+journalctl -u photo-backend -f
+journalctl -u volcengine -f
+
+# 更新代码后重新部署
+git pull
+cd backend && cargo build --release && systemctl restart photo-backend
+cd frontend && npm ci && npm run build
+
+# HTTPS（需要域名）
+certbot --nginx -d yourdomain.com
+```
+
+### 部署文件说明
+
+```
+deploy/
+├── setup.sh                 # 一键部署脚本
+├── nginx.conf               # Nginx 配置模板（含 __INSTALL_DIR__ 占位符）
+├── photo-backend.service    # 后端 systemd 服务
+├── volcengine.service       # VolcEngine systemd 服务
+└── .env.example             # 生产环境变量模板
+```
+
+---
+
+## 注意事项
+
+- 评分引擎按 VolcEngine → ArtiMuse → Gemini → Simulated 顺序优先级调度
+- VolcEngine 使用本地 CPU 推理，无需 API Key 和外网连接（但首次启动需下载 ~1.7GB 的 CLIP 模型）
+- 建议配置 `HF_TOKEN` 和 `HF_ENDPOINT=https://hf-mirror.com` 加速 CLIP 模型下载
+- 所有上传的照片保存在 `UPLOAD_DIR`（默认 `./uploads/`）
+- 数据存储在 `DATABASE_PATH`（默认 `./photos.db`）
+- 前后端分离架构，生产环境通过 Nginx 反代
