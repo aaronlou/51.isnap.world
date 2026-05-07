@@ -41,3 +41,5 @@ __pycache__/
 .gstack/
 
 .models/
+models/
+backend/scripts/.model_cache/
