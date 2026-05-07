@@ -175,11 +175,11 @@ def predict_aesthetic(image_path: str) -> float:
 
 @app.on_event("startup")
 async def startup_event():
-    """启动时预加载模型"""
+    """服务启动，模型采用懒加载（首次评分请求时加载）"""
     print("=" * 50)
     print("火山引擎同款图像美学评分服务")
     print("=" * 50)
-    load_models()
+    print("[提示] 模型将在首次评分请求时自动加载")
 
 
 @app.post("/score", response_model=ScoreResponse)
