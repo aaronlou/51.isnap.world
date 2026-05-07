@@ -79,8 +79,13 @@ async fn main() {
 
     // 评分协调器（领域服务）
     // 注册顺序决定优先级：先注册的先尝试，成功后直接返回
-    // 当前优先级：VolcEngine > ArtiMuse > Gemini > simulated
+    // 当前优先级：Gemini > VolcEngine > ArtiMuse > simulated
     let mut coordinator = ScoringCoordinator::new();
+
+    if !gemini_api_key.is_empty() {
+        info!("Gemini scoring enabled");
+        coordinator.register(Box::new(GeminiClient::new(gemini_api_key)));
+    }
 
     if volcengine_enabled {
         info!("VolcEngine scoring enabled at {}", volcengine_url);
@@ -90,11 +95,6 @@ async fn main() {
     if artimuse_enabled {
         info!("ArtiMuse scoring enabled at {}", artimuse_url);
         coordinator.register(Box::new(ArtiMuseClient::new(artimuse_url)));
-    }
-
-    if !gemini_api_key.is_empty() {
-        info!("Gemini scoring enabled");
-        coordinator.register(Box::new(GeminiClient::new(gemini_api_key)));
     }
 
     if coordinator.is_empty() {

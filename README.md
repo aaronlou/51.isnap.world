@@ -6,9 +6,9 @@
 
 | 引擎 | 优先级 | 说明 | 依赖 |
 |------|--------|------|------|
-| **VolcEngine** | 🥇 最高 | 本地 CLIP-ViT-L/14 + LAION MLP 美学模型，0-1 分标准化评分 | Python + PyTorch CPU |
-| **ArtiMuse** | 🥈 | CVPR 2026 专业图像美学评估模型，8 维度深度洞察 | GPU ≥ 16GB |
-| **Gemini 2.0 Pro** | 🥉 | Google 多模态大模型，通用图像理解 | API Key |
+| **Gemini 2.0 Pro** | 🥇 最高 | Google 多模态大模型，通用图像理解 | API Key |
+| **VolcEngine** | 🥈 | 本地 CLIP-ViT-L/14 + LAION MLP 美学模型，0-1 分标准化评分 | Python + PyTorch CPU |
+| **ArtiMuse** | 🥉 | CVPR 2026 专业图像美学评估模型，8 维度深度洞察 | GPU ≥ 16GB |
 | **Simulated** | ⚪ 兜底 | 所有引擎不可用时返回模拟评分 | 无需额外配置 |
 
 评分协调器按优先级顺序尝试，一个引擎成功即返回，失败自动降级。
@@ -248,7 +248,7 @@ deploy/
 
 ## 注意事项
 
-- 评分引擎按 VolcEngine → ArtiMuse → Gemini → Simulated 顺序优先级调度
+- 评分引擎按 Gemini → VolcEngine → ArtiMuse → Simulated 顺序优先级调度（有 GEMINI_API_KEY 时优先使用）
 - VolcEngine 使用本地 CPU 推理，无需 API Key 和外网连接（但首次启动需下载 ~1.7GB 的 CLIP 模型）
 - 建议配置 `HF_TOKEN` 和 `HF_ENDPOINT=https://hf-mirror.com` 加速 CLIP 模型下载
 - 所有上传的照片保存在 `UPLOAD_DIR`（默认 `./uploads/`）
