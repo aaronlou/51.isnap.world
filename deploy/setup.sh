@@ -250,18 +250,36 @@ fi
 "$INSTALL_DIR/.venv/bin/pip" install --quiet torch --index-url https://download.pytorch.org/whl/cpu
 "$INSTALL_DIR/.venv/bin/pip" install --quiet -r "$INSTALL_DIR/backend/scripts/requirements.txt"
 
-# 预先下载 CLIP 模型
+# 预先下载 CLIP 模型（先加载 .env 中的 HF 配置）
+if [[ -f "$INSTALL_DIR/.env" ]]; then
+    set -a; source "$INSTALL_DIR/.env"; set +a
+fi
+
+# 检测 HuggingFace 连通性，不可达时自动用镜像
+if [[ -z "${HF_ENDPOINT:-}" ]]; then
+    if ! curl -sS --connect-timeout 5 https://huggingface.co >/dev/null 2>&1; then
+        warn "huggingface.co 不可达，自动切换镜像 HF_ENDPOINT=https://hf-mirror.com"
+        export HF_ENDPOINT="https://hf-mirror.com"
+        # 写入 .env 让 systemd 服务也能继承
+        if ! grep -q "^HF_ENDPOINT=" "$INSTALL_DIR/.env" 2>/dev/null; then
+            echo "" >> "$INSTALL_DIR/.env"
+            echo "# 自动添加的 HuggingFace 镜像（因直连不可达）" >> "$INSTALL_DIR/.env"
+            echo "HF_ENDPOINT=https://hf-mirror.com" >> "$INSTALL_DIR/.env"
+            info "已写入 HF_ENDPOINT 到 $INSTALL_DIR/.env"
+        fi
+    fi
+fi
+
 if [[ -n "${HF_TOKEN:-}" ]]; then
     warn "检测到 HF_TOKEN，使用认证下载（速度更快）"
 fi
 if [[ -n "${HF_ENDPOINT:-}" ]]; then
     info "使用 HuggingFace 镜像: $HF_ENDPOINT"
 fi
-# 先加载 .env 中的 HF 配置
-if [[ -f "$INSTALL_DIR/.env" ]]; then
-    set -a; source "$INSTALL_DIR/.env"; set +a
-fi
+
 "$INSTALL_DIR/.venv/bin/python" -c "
+import os
+os.environ['HF_ENDPOINT'] = os.environ.get('HF_ENDPOINT', 'https://hf-mirror.com')
 from transformers import CLIPModel, CLIPProcessor
 CLIPProcessor.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$INSTALL_DIR/backend/scripts/.model_cache')
 CLIPModel.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$INSTALL_DIR/backend/scripts/.model_cache')
