@@ -7,7 +7,7 @@
 set -euo pipefail
 
 # --- 配置（按需修改）---
-INSTALL_DIR="/opt/photo-battle"
+INSTALL_DIR="/home/admin/51.isnap.world"
 REPO_URL=""       # 如 git@github.com:user/repo.git，留空则使用本地目录
 BRANCH="main"
 SERVER_NAME="_"   # 你的域名，如 example.com
@@ -132,7 +132,7 @@ echo "=== 5. 创建目录和用户 ==="
 mkdir -p "$INSTALL_DIR"/{data,uploads,backend,frontend}
 
 if ! id -u photo-battle &>/dev/null; then
-    useradd -r -s /bin/false -m -d "$INSTALL_DIR" photo-battle
+    useradd -r -s /bin/false photo-battle
     info "创建用户: photo-battle"
 fi
 
@@ -168,6 +168,9 @@ npm run build
 info "前端构建完成"
 
 chown -R photo-battle:photo-battle "$INSTALL_DIR/frontend/dist"
+
+# 确保 Nginx 能读取前端文件
+chmod -R o+rX "$INSTALL_DIR/frontend/dist"
 
 # ============================================
 echo ""
@@ -206,6 +209,7 @@ print('CLIP model downloaded')
 
 # VolcEngine systemd 服务
 cp "$INSTALL_DIR/deploy/volcengine.service" /etc/systemd/system/volcengine.service
+sed -i "s|__INSTALL_DIR__|$INSTALL_DIR|g" /etc/systemd/system/volcengine.service
 systemctl daemon-reload
 systemctl enable volcengine
 systemctl restart volcengine
@@ -215,7 +219,7 @@ info "VolcEngine 评分服务已启动（首次启动需下载模型权重，用
 echo ""
 echo "=== 9. 安装后端 systemd 服务 ==="
 cp "$INSTALL_DIR/deploy/photo-backend.service" /etc/systemd/system/photo-backend.service
-sed -i "s/User=www-data/User=photo-battle/" /etc/systemd/system/photo-backend.service
+sed -i "s|__INSTALL_DIR__|$INSTALL_DIR|g" /etc/systemd/system/photo-backend.service
 systemctl daemon-reload
 systemctl enable photo-backend
 systemctl restart photo-backend
@@ -226,6 +230,7 @@ echo ""
 echo "=== 10. 配置 Nginx ==="
 NGINX_CONF="$NGINX_CONF_DIR/photo-battle.conf"
 cp "$INSTALL_DIR/deploy/nginx.conf" "$NGINX_CONF"
+sed -i "s|__INSTALL_DIR__|$INSTALL_DIR|g" "$NGINX_CONF"
 sed -i "s/server_name _;/server_name $SERVER_NAME;/" "$NGINX_CONF"
 
 if [[ "$OS" == "debian" ]]; then

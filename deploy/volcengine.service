@@ -5,14 +5,14 @@ After=network.target
 [Service]
 Type=simple
 User=photo-battle
-WorkingDirectory=/opt/photo-battle/backend/scripts
+WorkingDirectory=__INSTALL_DIR__/backend/scripts
 
-ExecStart=/opt/photo-battle/.venv/bin/python volcengine_aesthetic_server.py
+ExecStart=__INSTALL_DIR__/.venv/bin/python volcengine_aesthetic_server.py
 Restart=always
 RestartSec=10
 
-# 从项目 .env 加载 HF_TOKEN 等环境变量
-EnvironmentFile=/opt/photo-battle/.env
+# 从项目 .env 加载 HF_TOKEN 等
+EnvironmentFile=__INSTALL_DIR__/.env
 
 Environment=VOLCENGINE_PORT=8001
 Environment=VOLCENGINE_DEVICE=cpu

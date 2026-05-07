@@ -6,25 +6,24 @@ StartLimitBurst=3
 
 [Service]
 Type=simple
-User=www-data
-WorkingDirectory=/opt/photo-battle/backend
+User=photo-battle
+WorkingDirectory=__INSTALL_DIR__/backend
 
-ExecStart=/opt/photo-battle/backend/target/release/photo-battle-backend
+ExecStart=__INSTALL_DIR__/backend/target/release/photo-battle-backend
 Restart=always
 RestartSec=5
 
-# 从独立的 env 文件加载敏感变量（不在版本控制中）
-EnvironmentFile=/opt/photo-battle/.env
+# 从项目 .env 加载敏感变量
+EnvironmentFile=__INSTALL_DIR__/.env
 
-# 非敏感路径变量直接写在这里
+# 非敏感路径变量
 Environment=BASE_URL=http://localhost:8080
-Environment=DATABASE_PATH=/opt/photo-battle/data/photos.db
-Environment=UPLOAD_DIR=/opt/photo-battle/uploads
+Environment=DATABASE_PATH=__INSTALL_DIR__/data/photos.db
+Environment=UPLOAD_DIR=__INSTALL_DIR__/uploads
 Environment=ARTIMUSE_ENABLED=false
 Environment=VOLCENGINE_ENABLED=true
 Environment=VOLCENGINE_URL=http://127.0.0.1:8001
 
-# 日志
 StandardOutput=journal
 StandardError=journal
 
