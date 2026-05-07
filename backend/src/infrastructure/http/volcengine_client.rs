@@ -19,7 +19,10 @@ impl ScoringEngine for VolcEngineClient {
     }
 
     async fn score(&self, image_path: &Path) -> Result<Score, DomainError> {
-        let client = reqwest::Client::new();
+        let client = reqwest::Client::builder()
+            .timeout(std::time::Duration::from_secs(10))
+            .build()
+            .map_err(|e| DomainError::EngineUnavailable(format!("Failed to build HTTP client: {}", e)))?;
         let request_body = serde_json::json!({
             "image_path": image_path.to_str().unwrap_or("")
         });

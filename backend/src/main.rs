@@ -18,15 +18,16 @@ mod infrastructure;
 mod presentation;
 
 use application::use_cases::{
-    get_leaderboard::GetLeaderboardUseCase,
-    list_photos::ListPhotosUseCase,
-    score_photo::ScorePhotoUseCase,
-    upload_photo::UploadPhotoUseCase,
+    get_leaderboard::GetLeaderboardUseCase, list_photos::ListPhotosUseCase,
+    score_photo::ScorePhotoUseCase, upload_photo::UploadPhotoUseCase,
 };
 use domain::scoring::ScoringCoordinator;
 use infrastructure::{
     db::sqlite::SqlitePhotoRepository,
-    http::{artimuse_client::ArtiMuseClient, gemini_client::GeminiClient, volcengine_client::VolcEngineClient},
+    http::{
+        artimuse_client::ArtiMuseClient, gemini_client::GeminiClient,
+        volcengine_client::VolcEngineClient,
+    },
     storage::local_file_storage::LocalFileStorage,
 };
 use presentation::routes::{health, leaderboard, photos};
@@ -45,15 +46,14 @@ async fn main() {
     tracing_subscriber::fmt::init();
 
     // 配置
-    let upload_dir = PathBuf::from(
-        std::env::var("UPLOAD_DIR").unwrap_or_else(|_| "./uploads".to_string()),
-    );
+    let upload_dir =
+        PathBuf::from(std::env::var("UPLOAD_DIR").unwrap_or_else(|_| "./uploads".to_string()));
     fs::create_dir_all(&upload_dir).expect("Failed to create uploads directory");
 
     let db_path = std::env::var("DATABASE_PATH").unwrap_or_else(|_| "photos.db".to_string());
 
-    let base_url = std::env::var("BASE_URL")
-        .unwrap_or_else(|_| "http://localhost:3001".to_string());
+    let base_url =
+        std::env::var("BASE_URL").unwrap_or_else(|_| "http://localhost:3001".to_string());
 
     let gemini_api_key = std::env::var("GEMINI_API_KEY").unwrap_or_else(|_| {
         warn!("GEMINI_API_KEY not set");
@@ -64,33 +64,32 @@ async fn main() {
         .map(|v| v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
 
-    let artimuse_url = std::env::var("ARTIMUSE_URL")
-        .unwrap_or_else(|_| "http://127.0.0.1:8000".to_string());
+    let artimuse_url =
+        std::env::var("ARTIMUSE_URL").unwrap_or_else(|_| "http://127.0.0.1:8000".to_string());
 
     let volcengine_enabled = std::env::var("VOLCENGINE_ENABLED")
         .map(|v| v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
 
-    let volcengine_url = std::env::var("VOLCENGINE_URL")
-        .unwrap_or_else(|_| "http://127.0.0.1:8001".to_string());
+    let volcengine_url =
+        std::env::var("VOLCENGINE_URL").unwrap_or_else(|_| "http://127.0.0.1:8001".to_string());
 
     // 基础设施层
-    let repository = SqlitePhotoRepository::new(&db_path)
-        .expect("Failed to initialize database");
+    let repository = SqlitePhotoRepository::new(&db_path).expect("Failed to initialize database");
 
     // 评分协调器（领域服务）
     // 注册顺序决定优先级：先注册的先尝试，成功后直接返回
     // 当前优先级：Gemini > VolcEngine > ArtiMuse > simulated
     let mut coordinator = ScoringCoordinator::new();
 
-    if !gemini_api_key.is_empty() {
-        info!("Gemini scoring enabled");
-        coordinator.register(Box::new(GeminiClient::new(gemini_api_key)));
-    }
-
     if volcengine_enabled {
         info!("VolcEngine scoring enabled at {}", volcengine_url);
         coordinator.register(Box::new(VolcEngineClient::new(volcengine_url)));
+    }
+
+    if !gemini_api_key.is_empty() {
+        info!("Gemini scoring enabled");
+        coordinator.register(Box::new(GeminiClient::new(gemini_api_key)));
     }
 
     if artimuse_enabled {
@@ -112,11 +111,7 @@ async fn main() {
         upload_dir.clone(),
         base_url.clone(),
     );
-    let score_photo = ScorePhotoUseCase::new(
-        repository.clone(),
-        upload_dir,
-        coordinator,
-    );
+    let score_photo = ScorePhotoUseCase::new(repository.clone(), upload_dir, coordinator);
     let list_photos = ListPhotosUseCase::new(repository.clone(), base_url.clone());
     let get_leaderboard = GetLeaderboardUseCase::new(repository, base_url);
 
