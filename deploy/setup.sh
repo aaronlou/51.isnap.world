@@ -90,27 +90,45 @@ fi
 
 # ============================================
 echo ""
-echo "=== 3. 安装 Node.js ==="
-if ! command -v node &>/dev/null; then
-    if [[ "$OS" == "debian" ]]; then
-        # 用 fnm 安装（避免系统 Node 版本过旧）
-        curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell
+echo "=== 3. 安装 Node.js (>= 18) ==="
+# 检查版本，现有 node 太旧也会升级
+NODE_OK=false
+if command -v node &>/dev/null; then
+    NODE_VER=$(node -v | sed 's/v//;s/\..*//')
+    if [[ "$NODE_VER" -ge 18 ]] 2>/dev/null; then
+        NODE_OK=true
+        info "Node.js 已存在: $(node -v)"
+    else
+        warn "Node.js 版本过旧 ($(node -v))，需要 >= 18，准备升级..."
+    fi
+fi
+
+if ! $NODE_OK; then
+    # 用 fnm 安装（轻量 Node 版本管理器，无需 root，兼容 all distros）
+    if ! command -v fnm &>/dev/null; then
+        curl -fsSL https://fnm.vercel.app/install | bash -s -- --skip-shell 2>/dev/null || true
         export PATH="$HOME/.local/share/fnm:$PATH"
         eval "$(fnm env --use-on-cd --shell bash)" 2>/dev/null || true
-        if command -v fnm &>/dev/null; then
-            fnm install --lts
-            fnm use lts-latest
-        else
-            warn "fnm 安装失败，回退到系统 Node"
-            $PKG_INSTALL nodejs npm
-        fi
+    fi
+    if command -v fnm &>/dev/null; then
+        fnm install --lts
+        fnm use lts-latest
     else
-        # CentOS 已随 epel 安装 nodejs
-        info "Node.js 已在 epel 步骤安装"
+        warn "fnm 不可用，使用系统包管理器安装 Node.js"
+        if [[ "$OS" == "debian" ]]; then
+            $PKG_INSTALL nodejs npm
+        else
+            # CentOS: 尝试 nodesource 或安装更高版本
+            $PKG_INSTALL nodejs npm 2>/dev/null || true
+            NODE_VER=$(node -v 2>/dev/null | sed 's/v//;s/\..*//')
+            if [[ -n "$NODE_VER" && "$NODE_VER" -lt 18 ]] 2>/dev/null; then
+                warn "系统包版本仍过旧，尝试 nodesource 仓库..."
+                curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+                $PKG_INSTALL nodejs
+            fi
+        fi
     fi
     info "Node.js 已安装: $(node -v)"
-else
-    info "Node.js 已存在: $(node -v)"
 fi
 
 # ============================================
