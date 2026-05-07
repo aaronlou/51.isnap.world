@@ -3,4 +3,3 @@ target/
 uploads/
 .git/
 Dockerfile
-scripts/
