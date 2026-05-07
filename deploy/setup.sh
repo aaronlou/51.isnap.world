@@ -65,7 +65,7 @@ elif [[ "$OS" == "rhel" ]]; then
     # EPEL 提供 nginx 和 certbot
     $PKG_INSTALL epel-release
     $PKG_UPDATE
-    $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip python3-venv nodejs npm rsync
+    $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip nodejs npm rsync
 fi
 info "系统依赖已安装"
 
@@ -176,12 +176,22 @@ chmod -R o+rX "$INSTALL_DIR/frontend/dist"
 echo ""
 echo "=== 8. 安装 Python + VolcEngine 评分服务 ==="
 if ! command -v python3 &>/dev/null; then
-    $PKG_INSTALL python3 python3-venv python3-pip
+    if [[ "$OS" == "debian" ]]; then
+        $PKG_INSTALL python3 python3-venv python3-pip
+    else
+        $PKG_INSTALL python3 python3-pip
+    fi
 fi
 
 # 创建虚拟环境
 if [[ ! -d "$INSTALL_DIR/.venv" ]]; then
-    python3 -m venv "$INSTALL_DIR/.venv"
+    if ! python3 -m venv "$INSTALL_DIR/.venv" 2>/dev/null; then
+        warn "python3 -m venv 不可用，尝试安装 python3-venv..."
+        # CentOS 9 无需单独安装，若失败则用 ensurepip
+        python3 -m ensurepip --upgrade 2>/dev/null || true
+        python3 -m venv --without-pip "$INSTALL_DIR/.venv" 2>/dev/null || \
+        python3 -m venv "$INSTALL_DIR/.venv"
+    fi
 fi
 
 # PyTorch CPU 版 + 其他依赖
