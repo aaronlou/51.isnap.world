@@ -98,15 +98,19 @@ if [[ "$OS" == "rhel" ]]; then
     rm -f /etc/yum.repos.d/nodesource*.repo /etc/yum.repos.d/N|Solid*.repo 2>/dev/null || true
 fi
 
-# 检查已有 node 版本
+# 检查已有 node 版本（包括 /usr/local/bin 等 sudo 可能没包含的路径）
 NODE_OK=false
-if command -v node &>/dev/null; then
-    NODE_VER=$(node -v | sed 's/v//;s/\..*//')
-    if [[ "$NODE_VER" -ge 18 ]] 2>/dev/null; then
-        NODE_OK=true
-        info "Node.js 已存在: $(node -v)"
+for NODE_BIN in /usr/local/bin/node /usr/bin/node /usr/local/node/bin/node; do
+    if [[ -x "$NODE_BIN" ]]; then
+        NODE_VER=$("$NODE_BIN" -v | sed 's/v//;s/\..*//')
+        if [[ "$NODE_VER" -ge 18 ]] 2>/dev/null; then
+            NODE_OK=true
+            export PATH="$(dirname "$NODE_BIN"):$PATH"
+            info "Node.js 已存在 ($NODE_BIN): $("$NODE_BIN" -v)"
+            break
+        fi
     fi
-fi
+done
 
 if ! $NODE_OK; then
     # 方案一: fnm（跨发行版，无需 root）
