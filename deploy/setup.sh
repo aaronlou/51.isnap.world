@@ -114,19 +114,24 @@ if ! $NODE_OK; then
         fnm install --lts
         fnm use lts-latest
     else
-        warn "fnm 不可用，使用系统包管理器安装 Node.js"
-        if [[ "$OS" == "debian" ]]; then
-            $PKG_INSTALL nodejs npm
-        else
-            # CentOS: 尝试 nodesource 或安装更高版本
-            $PKG_INSTALL nodejs npm 2>/dev/null || true
-            NODE_VER=$(node -v 2>/dev/null | sed 's/v//;s/\..*//')
-            if [[ -n "$NODE_VER" && "$NODE_VER" -lt 18 ]] 2>/dev/null; then
-                warn "系统包版本仍过旧，尝试 nodesource 仓库..."
-                curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
-                $PKG_INSTALL nodejs
-            fi
-        fi
+        warn "fnm 不可用（国内网络可能被墙），直接下载 Node.js 二进制..."
+        # 移除旧版 nodejs 包，避免冲突
+        dnf remove -y -q nodejs nodejs-full-i18n 2>/dev/null || true
+        # Node.js 镜像（国内用 npmmirror）
+        NODE_MIRROR="${NODEJS_MIRROR:-https://nodejs.org/dist}"
+        info "Node.js 下载源: $NODE_MIRROR"
+        curl -fsSL --retry 3 --retry-delay 5 \
+            "$NODE_MIRROR/v20.18.0/node-v20.18.0-linux-x64.tar.xz" \
+            -o /tmp/node.tar.xz && \
+        tar -xf /tmp/node.tar.xz -C /usr/local --strip-components=1 && \
+        rm -f /tmp/node.tar.xz && \
+        info "Node.js 已安装: $(node -v)" || {
+            warn "二进制下载失败，尝试 nodesource 仓库..."
+            curl -fsSL https://rpm.nodesource.com/setup_20.x | bash -
+            dnf install -y -q nodejs 2>/dev/null || \
+            dnf install -y -q --allowerasing nodejs 2>/dev/null || \
+            dnf install -y -q nodejs
+        }
     fi
     info "Node.js 已安装: $(node -v)"
 fi
