@@ -161,8 +161,10 @@ def predict_aesthetic(image_path: str) -> float:
     pixel_values = inputs["pixel_values"].to(DEVICE)
 
     with torch.no_grad():
-        # 提取 CLIP 图像特征
-        image_features = _clip_model.get_image_features(pixel_values=pixel_values)
+        # 提取 CLIP 图像特征（兼容新版 transformers）
+        vision_outputs = _clip_model.vision_model(pixel_values=pixel_values)
+        pooled_output = vision_outputs.pooler_output if hasattr(vision_outputs, 'pooler_output') else vision_outputs[1]
+        image_features = _clip_model.visual_projection(pooled_output)
         image_features = image_features / image_features.norm(dim=-1, keepdim=True)
 
         # MLP 预测
