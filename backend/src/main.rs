@@ -1,6 +1,7 @@
 use std::{fs, path::PathBuf, sync::Arc};
 
 use axum::{
+    extract::DefaultBodyLimit,
     routing::{get, post},
     Router,
 };
@@ -140,6 +141,7 @@ async fn main() {
         .nest_service("/uploads", ServeDir::new("./uploads"))
         .layer(cors)
         .layer(TraceLayer::new_for_http())
+        .layer(DefaultBodyLimit::max(50 * 1024 * 1024))
         .with_state(state);
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001")

@@ -1,9 +1,11 @@
 use axum::{
     extract::{Multipart, State},
+    http::HeaderMap,
     response::{IntoResponse, Json},
 };
 use bytes::Bytes;
 use std::sync::Arc;
+use tracing::{error, info};
 
 use crate::domain::errors::DomainError;
 use crate::presentation::error::ApiError;
@@ -18,23 +20,43 @@ pub async fn list_photos(
 
 pub async fn upload_photo(
     State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
     mut multipart: Multipart,
 ) -> Result<impl IntoResponse, ApiError> {
+    info!("Upload request received");
+    if let Some(ct) = headers.get("content-type") {
+        info!("Content-Type: {:?}", ct);
+    }
+
     let mut filename = String::new();
     let mut file_bytes: Option<Bytes> = None;
 
     while let Some(field) = multipart
         .next_field()
         .await
-        .map_err(|e| DomainError::MultipartError(e.to_string()))?
+        .map_err(|e| {
+            error!("Multipart next_field error: {:?}", e);
+            let detail = std::error::Error::source(&e)
+                .map(|s| format!("{}: {}", e, s))
+                .unwrap_or_else(|| e.to_string());
+            DomainError::MultipartError(detail)
+        })?
     {
         let name = field.name().unwrap_or("").to_string();
+        info!("Processing field: {}", name);
         if name == "file" {
             filename = field.file_name().unwrap_or("unknown.jpg").to_string();
             let data = field
                 .bytes()
                 .await
-                .map_err(|e| DomainError::MultipartError(e.to_string()))?;
+                .map_err(|e| {
+                    error!("Multipart bytes error: {:?}", e);
+                    let detail = std::error::Error::source(&e)
+                        .map(|s| format!("{}: {}", e, s))
+                        .unwrap_or_else(|| e.to_string());
+                    DomainError::MultipartError(detail)
+                })?;
+            info!("File size: {} bytes", data.len());
             file_bytes = Some(data);
         }
     }
