@@ -1,6 +1,6 @@
 photo.innergrow.ai {
     # API 和上传代理到后端
-    reverse_proxy /api/* backend:3001
+    reverse_proxy /api/** backend:3001
     reverse_proxy /uploads/* backend:3001
 
     # 其他所有请求代理到前端 nginx
