@@ -7,6 +7,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         build-essential \
         libgomp1 \
+        curl \
         && rm -rf /var/lib/apt/lists/*
 
 # 安装 Python 依赖
