@@ -277,14 +277,34 @@ if [[ -n "${HF_ENDPOINT:-}" ]]; then
     info "使用 HuggingFace 镜像: $HF_ENDPOINT"
 fi
 
-"$INSTALL_DIR/.venv/bin/python" -c "
-import os
+# 尝试预下载（设短超时，避免卡死）
+MODEL_CACHE="$INSTALL_DIR/backend/scripts/.model_cache"
+if timeout 120 "$INSTALL_DIR/.venv/bin/python" -c "
+import os, sys
 os.environ['HF_ENDPOINT'] = os.environ.get('HF_ENDPOINT', 'https://hf-mirror.com')
+os.environ['HF_HUB_DOWNLOAD_TIMEOUT'] = '30'
 from transformers import CLIPModel, CLIPProcessor
-CLIPProcessor.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$INSTALL_DIR/backend/scripts/.model_cache')
-CLIPModel.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$INSTALL_DIR/backend/scripts/.model_cache')
-print('CLIP model downloaded')
-" && info "CLIP 模型预下载完成" || warn "CLIP 模型下载超时，服务启动后会自动重试"
+CLIPProcessor.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$MODEL_CACHE')
+CLIPModel.from_pretrained('openai/clip-vit-large-patch14', cache_dir='$MODEL_CACHE')
+print('OK')
+" 2>/dev/null; then
+    info "CLIP 模型预下载完成"
+else
+    warn "CLIP 模型下载失败（网络问题）"
+    echo ""
+    echo "   ╔══════════════════════════════════════════════════╗"
+    echo "   ║  手动下载方式：                                  ║"
+    echo "   ║                                                  ║"
+    echo "   ║  在有网络的机器上运行:                            ║"
+    echo "   ║  bash deploy/download-models.sh                  ║"
+    echo "   ║                                                  ║"
+    echo "   ║  然后 scp 到服务器:                               ║"
+    echo "   ║  scp clip-model-cache.tar.gz 服务器IP:/tmp/      ║"
+    echo "   ║  服务器上: tar -xzf /tmp/clip-model-cache.tar.gz  ║"
+    echo "   ║           -C $INSTALL_DIR/backend/scripts/       ║"
+    echo "   ╚══════════════════════════════════════════════════╝"
+    echo ""
+fi
 
 # VolcEngine systemd 服务
 cp "$INSTALL_DIR/deploy/volcengine.service" /etc/systemd/system/volcengine.service
