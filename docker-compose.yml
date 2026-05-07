@@ -20,11 +20,11 @@ services:
     environment:
       # Docker 内部用服务名访问 VolcEngine
       - VOLCENGINE_URL=http://volcengine:8001
-      - BASE_URL=http://localhost:8080
+      - BASE_URL=https://photo.innergrow.ai
       - DATABASE_PATH=/app/data/photos.db
       - UPLOAD_DIR=/app/uploads
     volumes:
-      - backend_uploads:/app/uploads
+      - ./uploads:/app/uploads
       - backend_db:/app/data
     depends_on:
       volcengine:
@@ -47,7 +47,7 @@ services:
       - VOLCENGINE_PORT=8001
       - VOLCENGINE_DEVICE=cpu
     volumes:
-      - backend_uploads:/app/uploads
+      - ./uploads:/app/uploads
       - volcengine_cache:/app/scripts/.model_cache
     restart: unless-stopped
     healthcheck:
@@ -85,7 +85,6 @@ services:
     restart: unless-stopped
 
 volumes:
-  backend_uploads:
   backend_db:
   volcengine_cache:
   caddy_data:

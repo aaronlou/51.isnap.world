@@ -1,3 +1,5 @@
+use tracing::info;
+
 use crate::application::dto::PhotoDto;
 use crate::domain::{
     errors::DomainError,
@@ -30,11 +32,7 @@ impl<R: PhotoRepository, S: FileStorage> UploadPhotoUseCase<R, S> {
         }
     }
 
-    pub async fn execute(
-        &self,
-        filename: String,
-        data: Vec<u8>,
-    ) -> Result<PhotoDto, DomainError> {
+    pub async fn execute(&self, filename: String, data: Vec<u8>) -> Result<PhotoDto, DomainError> {
         // 1. 领域层验证（值对象封装验证逻辑）
         let file = FileUpload::validate(filename, data)?;
 
@@ -44,10 +42,8 @@ impl<R: PhotoRepository, S: FileStorage> UploadPhotoUseCase<R, S> {
 
         // 3. 存储文件（通过端口抽象，不依赖具体文件系统）
         let path = photo.storage_path(&self.upload_dir);
-        self.file_storage
-            .write(&path, &file.data)
-            .await?;
-
+        self.file_storage.write(&path, &file.data).await?;
+        info!("File saved to {}", path.display());
         // 4. 持久化实体
         self.repository.save(&photo).await?;
 

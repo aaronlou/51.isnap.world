@@ -11,6 +11,8 @@ use tower_http::{
     trace::TraceLayer,
 };
 use tracing::{info, warn};
+use tracing_appender::rolling;
+use tracing_subscriber::{filter::LevelFilter, layer::SubscriberExt, util::SubscriberInitExt, Layer as TracingLayer};
 
 mod application;
 mod domain;
@@ -43,7 +45,38 @@ pub struct AppState {
 #[tokio::main]
 async fn main() {
     dotenvy::dotenv().ok();
-    tracing_subscriber::fmt::init();
+    // 初始化日志：stdout + 滚动文件
+    let log_dir = std::env::var("LOG_DIR").unwrap_or_else(|_| "./logs".to_string());
+    fs::create_dir_all(&log_dir).ok();
+
+    // 标准输出（带颜色，供 docker logs / 终端查看）
+    let stdout_layer = tracing_subscriber::fmt::layer()
+        .with_target(true)
+        .with_thread_ids(false);
+
+    // 全部日志 -> logs/app.log（每日滚动，保留 7 天）
+    let file_appender = rolling::daily(&log_dir, "app.log");
+    let (file_writer, _file_guard) = tracing_appender::non_blocking(file_appender);
+    let file_layer = tracing_subscriber::fmt::layer()
+        .with_writer(file_writer)
+        .with_target(true)
+        .with_ansi(false)
+        .with_filter(LevelFilter::DEBUG);
+
+    // ERROR 级别日志 -> logs/error.log
+    let error_appender = rolling::daily(&log_dir, "error.log");
+    let (error_writer, _error_guard) = tracing_appender::non_blocking(error_appender);
+    let error_layer = tracing_subscriber::fmt::layer()
+        .with_writer(error_writer)
+        .with_target(true)
+        .with_ansi(false)
+        .with_filter(LevelFilter::ERROR);
+
+    tracing_subscriber::registry()
+        .with(stdout_layer)
+        .with(file_layer)
+        .with(error_layer)
+        .init();
 
     // 配置
     let upload_dir =

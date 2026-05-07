@@ -12,7 +12,7 @@ if ! docker network inspect "$NETWORK" >/dev/null 2>&1; then
 fi
 
 # 创建持久化卷
-for vol in backend_uploads backend_db volcengine_cache caddy_data caddy_config; do
+for vol in backend_db volcengine_cache caddy_data caddy_config; do
     if ! docker volume inspect "$vol" >/dev/null 2>&1; then
         docker volume create "$vol"
     fi
@@ -41,7 +41,7 @@ echo "=== 启动 VolcEngine ==="
 docker run -d \
   --name photo-battle-volcengine \
   --network "$NETWORK" \
-  -v backend_uploads:/app/uploads \
+  -v "$(pwd)/uploads:/app/uploads" \
   -v volcengine_cache:/app/scripts/.model_cache \
   -e VOLCENGINE_PORT=8001 \
   -e VOLCENGINE_DEVICE=cpu \
@@ -65,7 +65,7 @@ docker run -d \
   --name photo-battle-backend \
   --network "$NETWORK" \
   -p 3001:3001 \
-  -v backend_uploads:/app/uploads \
+  -v "$(pwd)/uploads:/app/uploads" \
   -v backend_db:/app/data \
   --env-file .env \
   -e VOLCENGINE_URL=http://volcengine:8001 \
