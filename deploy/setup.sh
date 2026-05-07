@@ -74,7 +74,8 @@ elif [[ "$OS" == "rhel" ]]; then
     $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip rsync
 elif [[ "$OS" == "amazon" ]]; then
     $PKG_UPDATE
-    $PKG_INSTALL curl gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip rsync
+    # Amazon Linux 默认安装 curl-minimal，与 curl 包冲突，故不安装 curl
+    $PKG_INSTALL gcc-c++ make pkgconfig openssl-devel nginx git python3 python3-pip rsync
 fi
 info "系统依赖已安装"
 
