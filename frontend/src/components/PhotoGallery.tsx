@@ -32,8 +32,8 @@ export default function PhotoGallery({
         <div className="w-12 h-12 rounded-full bg-ink-900 border border-ink-800 flex items-center justify-center mx-auto mb-5">
           <ImageOff className="w-5 h-5 text-cream-subtle" strokeWidth={1.5} />
         </div>
-        <p className="text-cream-muted text-sm">No photos yet</p>
-        <p className="text-cream-subtle text-xs mt-1">Upload your first photograph</p>
+        <p className="text-cream-muted text-sm">暂无照片</p>
+        <p className="text-cream-subtle text-xs mt-1">上传你的第一张摄影作品</p>
       </div>
     )
   }
@@ -47,12 +47,12 @@ export default function PhotoGallery({
     <div>
       {/* Header */}
       <div className="text-center mb-12">
-        <p className="label mb-3">Collection</p>
+        <p className="label mb-3">作品集</p>
         <h2 className="heading-display text-4xl md:text-5xl text-cream mb-3">
-          Gallery
+          画廊
         </h2>
         <p className="text-cream-muted text-sm">
-          {photos.length} photos · {photos.filter((p) => p.score !== undefined).length} reviewed
+          {photos.length} 张作品 · {photos.filter((p) => p.score !== undefined).length} 张已评分
         </p>
       </div>
 
@@ -99,7 +99,7 @@ export default function PhotoGallery({
                       disabled={scoringId === photo.id}
                       className="text-[11px] font-medium text-gold-400 hover:text-gold-300 transition-colors disabled:opacity-50"
                     >
-                      {scoringId === photo.id ? 'Reviewing...' : 'Get critique'}
+                      {scoringId === photo.id ? '评分中...' : 'AI 点评'}
                     </button>
                   )}
                 </div>

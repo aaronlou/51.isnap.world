@@ -14,10 +14,10 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
 
   const validateFile = (file: File): string | null => {
     if (file.type !== 'image/jpeg') {
-      return 'JPEG only'
+      return '仅支持 JPEG 格式'
     }
     if (file.size > 30 * 1024 * 1024) {
-      return 'Max 30MB'
+      return '文件大小超过 30MB 限制'
     }
     return null
   }
@@ -71,12 +71,12 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         className="text-center mb-16"
       >
-        <p className="label mb-6">AI Photography Critique</p>
+        <p className="label mb-6">AI 摄影评分</p>
         <h2 className="heading-display text-5xl md:text-6xl text-cream mb-5 text-balance">
-          Challenge the AI jury
+          挑战 AI 评审团
         </h2>
         <p className="text-cream-muted text-sm md:text-base max-w-md mx-auto leading-relaxed">
-          Upload your photograph and receive a professional critique across composition, lighting, and creativity.
+          上传你的摄影作品，获得 AI 在构图、光线、色彩等多维度的专业点评与评分。
         </p>
       </motion.div>
 
@@ -122,8 +122,8 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
               >
                 <Loader2 className="w-8 h-8 text-gold-400 animate-spin" strokeWidth={1.5} />
                 <div>
-                  <p className="text-cream text-sm font-medium mb-2">Analyzing your photograph...</p>
-                  <p className="text-cream-subtle text-xs">This may take a moment</p>
+                  <p className="text-cream text-sm font-medium mb-2">正在分析你的作品...</p>
+                  <p className="text-cream-subtle text-xs">两个 AI 模型正在审议，请稍候</p>
                 </div>
               </motion.div>
             ) : (
@@ -140,10 +140,10 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
                   <Upload className="w-6 h-6 text-cream-muted" strokeWidth={1.5} />
                 </div>
                 <p className="text-cream text-base font-medium mb-1.5">
-                  Drop or click to upload
+                  拖拽或点击上传
                 </p>
                 <p className="text-cream-subtle text-xs">
-                  JPEG format · Up to 30MB
+                  JPEG 格式 · 最大 30MB
                 </p>
               </>
             )}
@@ -175,12 +175,12 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
       >
         <div className="flex items-center gap-2 text-xs text-cream-subtle">
           <span className="w-1.5 h-1.5 rounded-full bg-gold-400/60" />
-          <span>Gemini</span>
+          <span>Gemini AI</span>
         </div>
         <div className="w-px h-3 bg-ink-700" />
         <div className="flex items-center gap-2 text-xs text-cream-subtle">
           <span className="w-1.5 h-1.5 rounded-full bg-cream-muted/40" />
-          <span>VolcEngine</span>
+          <span>VolcEngine 美学</span>
         </div>
       </motion.div>
     </div>

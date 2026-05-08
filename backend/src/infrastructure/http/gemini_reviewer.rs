@@ -7,11 +7,11 @@ use crate::domain::{errors::DomainError, review::ReviewGenerator};
 const GEMINI_API_URL: &str =
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
 
-const PROMPT: &str = r#"You are a professional photography critic. Analyze this photo and write a concise review covering composition, lighting, color, subject, technical execution, and emotional impact.
+const PROMPT: &str = r#"你是一位专业摄影评论家。分析这张照片，从构图、光线、色彩、主体、技术执行和情感表达等角度写一段简短的点评。
 
-The image has been scored __SCORE__/5 by an aesthetic model. Based on what you see, write an insightful review (80-120 words in Chinese) that references specific qualities of this image.
+这张照片的美学评分为 __SCORE__/5。请根据图片内容，写一段 100-150 字的中文摄影点评，要针对这张照片的具体特点。
 
-Review:"#;
+点评："#;
 
 pub struct GeminiReviewer {
     api_key: String,

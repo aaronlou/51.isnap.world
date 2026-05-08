@@ -46,7 +46,7 @@ impl ScoringCoordinator {
         // Fallback: 所有引擎都失败时返回模拟评分
         let fallback = Score::new(
             3.5,
-            "AI 伙伴暂时离线，先给你一个鼓励分！下次再来探索更多发现 🎈".to_string(),
+            "AI 评审暂时离线，这是基础鼓励分！继续探索发现更多精彩 🎈".to_string(),
         )?;
         Ok((fallback, "simulated"))
     }
@@ -79,7 +79,7 @@ impl ScoringCoordinator {
         if values.is_empty() {
             let fallback = Score::new(
                 3.5,
-                "All AI judges are offline. Here's a neutral score to keep going! 🎈".to_string(),
+                "所有 AI 评审暂时离线，这是基础鼓励分！📸".to_string(),
             )?;
             return Ok((fallback, "simulated".to_string()));
         }

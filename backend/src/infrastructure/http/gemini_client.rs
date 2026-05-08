@@ -8,14 +8,14 @@ use crate::domain::{errors::DomainError, score::Score, scoring::ScoringEngine};
 const GEMINI_API_URL: &str =
     "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
 
-const PROMPT: &str = r#"You are a professional photography critic. Analyze this photo and provide:
-1. A score from 0.0 to 5.0 (5 being masterpiece level)
-2. A brief but insightful review (50-100 words) covering composition, lighting, subject, and emotional impact.
+const PROMPT: &str = r#"你是一位专业摄影评论家。分析这张照片，请给出：
+1. 0.0 到 5.0 的评分（5 分为大师级）
+2. 一段 50-100 字的中文点评，涵盖构图、光线、主体和情感等角度。
 
-Respond in this exact JSON format:
-{"score": X.X, "review": "your review here"}
+请严格按照以下 JSON 格式回复：
+{"score": X.X, "review": "你的点评内容"}
 
-Be critical but fair. Most good amateur photos score 2.5-3.5. Exceptional works score 4.0+. Only truly world-class photos deserve 4.5+."#;
+评分标准要严格，大多数优秀业余作品在 2.5-3.5 分之间，杰出作品在 4.0 分以上，只有真正的世界级作品才能获得 4.5 分以上。"#;
 
 pub struct GeminiClient {
     api_key: String,

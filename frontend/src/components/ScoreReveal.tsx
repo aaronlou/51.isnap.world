@@ -96,12 +96,12 @@ export default function ScoreReveal({
 
   const isPodium = rank !== null && rank !== undefined && rank <= 3
   const rankLabel = useMemo(() => {
-    if (score >= 4.5) return { label: 'Legendary', sub: 'A masterpiece for the ages' }
-    if (score >= 4.0) return { label: 'Masterpiece', sub: 'Outstanding photographic work' }
-    if (score >= 3.5) return { label: 'Exceptional', sub: 'A strong contender in the arena' }
-    if (score >= 3.0) return { label: 'Promising', sub: 'Great potential, keep shooting' }
-    if (score >= 2.0) return { label: 'Developing', sub: 'Building your photographic eye' }
-    return { label: 'Observer', sub: 'Study the masters and try again' }
+    if (score >= 4.5) return { label: '传奇之作', sub: '堪称传世经典的摄影杰作' }
+    if (score >= 4.0) return { label: '大师之作', sub: '出色的摄影功底和艺术表现力' }
+    if (score >= 3.5) return { label: '出类拔萃', sub: '在竞技场中极具竞争力的作品' }
+    if (score >= 3.0) return { label: '潜力新星', sub: '展现出了不俗的摄影天赋' }
+    if (score >= 2.0) return { label: '进阶之路', sub: '正在磨练你的摄影眼' }
+    return { label: '初入江湖', sub: '多看看大师作品，继续加油' }
   }, [score])
 
   const parseAttributes = (reviewText: string): { title: string; content: string }[] => {
@@ -116,7 +116,7 @@ export default function ScoreReveal({
 
   const attributes = parseAttributes(review)
   const hasAttributes = attributes.length > 0
-  const engineLabel = engine === 'artimuse' ? 'ArtiMuse' : engine === 'gemini' ? 'Gemini' : engine === 'volcengine' ? 'VolcEngine' : 'AI'
+  const engineLabel = engine === 'artimuse' ? 'ArtiMuse' : engine === 'gemini' ? 'Gemini' : engine || 'AI'
   const filledStars = Math.round(score)
 
   return (
@@ -152,7 +152,7 @@ export default function ScoreReveal({
             <div className="flex items-center gap-2 mb-6">
               <Swords className="w-3.5 h-3.5 text-gold-400" strokeWidth={1.5} />
               <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
-                Battle Result
+                评审结果
               </span>
               <span className="text-cream-subtle mx-1">·</span>
               <Sparkles className="w-3 h-3 text-cream-subtle" strokeWidth={1.5} />
@@ -235,13 +235,13 @@ export default function ScoreReveal({
                       </div>
                       <p className="text-sm font-medium text-cream">
                         {rank === 1
-                          ? '🏆 You reign supreme in the arena!'
+                          ? '🏆 恭喜登顶！你的作品称霸竞技场！'
                           : rank === 2
-                          ? '🥈 A stunning performance — on the podium!'
-                          : '🥉 Bronze medalist! A remarkable entry!'}
+                          ? '🥈 太棒了！一举夺得亚军宝座！'
+                          : '🥉 闯进三甲，实力不凡！'}
                       </p>
                       <p className="text-[11px] text-cream-subtle">
-                        Top {rank} of {totalScored || '—'} challengers
+                        在 {totalScored || '—'} 名挑战者中排名第 {rank}
                       </p>
                     </div>
                   ) : (
@@ -251,13 +251,13 @@ export default function ScoreReveal({
                       </div>
                       <p className="text-sm text-cream-muted">
                         {rank <= 10
-                          ? `Close fight! You're in the top tier.`
-                          : `A good start on your photographic journey.`}
+                          ? `激烈竞争！已跻身前十榜单`
+                          : `摄影之路，始于足下`}
                       </p>
                       <p className="text-[11px] text-cream-subtle">
                         {rank <= 10
-                          ? 'Study the top entries and refine your craft.'
-                          : 'Every master was once a beginner. Keep shooting!'}
+                          ? '研究榜上前辈的作品，继续打磨技艺'
+                          : '每一位大师都曾是初学者，坚持拍摄！'}
                       </p>
                     </div>
                   )}
@@ -349,7 +349,7 @@ export default function ScoreReveal({
                     onClick={onViewLeaderboard}
                     className="text-[11px] font-medium tracking-[0.1em] uppercase text-gold-400 hover:text-gold-300 transition-colors"
                   >
-                    View Full Rankings →
+                    查看完整排行榜 →
                   </button>
                 </motion.div>
               )}

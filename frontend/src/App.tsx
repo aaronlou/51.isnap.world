@@ -10,9 +10,9 @@ import { useLeaderboard } from '@/hooks/useLeaderboard'
 import type { Tab } from '@/types/photo'
 
 const tabs: { id: Tab; label: string; icon: typeof Camera }[] = [
-  { id: 'upload', label: 'Submit', icon: Camera },
-  { id: 'gallery', label: 'Gallery', icon: Grid3X3 },
-  { id: 'leaderboard', label: 'Rankings', icon: BarChart3 },
+  { id: 'upload', label: '上传', icon: Camera },
+  { id: 'gallery', label: '画廊', icon: Grid3X3 },
+  { id: 'leaderboard', label: '排行榜', icon: BarChart3 },
 ]
 
 export default function App() {
@@ -68,15 +68,15 @@ export default function App() {
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="heading-display text-2xl text-cream tracking-tight">
-              Photo Battle
+              摄影大乱斗
             </span>
             <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-gold-400 bg-gold-400/8 px-2 py-0.5 rounded-full">
-              Arena
+              竞技场
             </span>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs text-cream-muted">
             <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
-            <span>{scoredCount} reviewed</span>
+            <span>{scoredCount} 张已评分</span>
           </div>
         </div>
       </header>
@@ -188,8 +188,8 @@ export default function App() {
                     <Brain className="w-8 h-8 text-cyan-400" strokeWidth={1.5} />
                   </motion.div>
                 </div>
-                <h3 className="text-lg font-medium text-cream mb-2">AI Judges in Session</h3>
-                <p className="text-sm text-cream-muted">Two AI models are evaluating your photo</p>
+                <h3 className="text-lg font-medium text-cream mb-2">AI 评审中</h3>
+                <p className="text-sm text-cream-muted">两个 AI 模型正在紧张讨论中...</p>
               </div>
 
               <div className="space-y-3">
@@ -201,7 +201,7 @@ export default function App() {
                   />
                   <div className="flex-1">
                     <p className="text-xs font-medium text-cream">VolcEngine</p>
-                    <p className="text-[10px] text-cream-subtle">Analyzing aesthetics & composition...</p>
+                    <p className="text-[10px] text-cream-subtle">正在分析美学与构图...</p>
                   </div>
                 </div>
 
@@ -213,7 +213,7 @@ export default function App() {
                   />
                   <div className="flex-1">
                     <p className="text-xs font-medium text-cream">Gemini</p>
-                    <p className="text-[10px] text-cream-subtle">Evaluating composition & reviewing...</p>
+                    <p className="text-[10px] text-cream-subtle">正在进行专业摄影点评...</p>
                   </div>
                 </div>
               </div>
@@ -224,7 +224,7 @@ export default function App() {
                   transition={{ duration: 2, repeat: Infinity }}
                   className="text-[11px] text-cream-subtle"
                 >
-                  Deliberating...
+                  审议中...
                 </motion.div>
               </div>
             </motion.div>
@@ -255,10 +255,10 @@ export default function App() {
       <footer className="fixed bottom-0 left-0 right-0 z-30 bg-ink-950/60 backdrop-blur-md border-t border-ink-800/20">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <p className="text-[11px] text-cream-subtle tracking-wide">
-            Photo Battle Arena
+            摄影大乱斗 · AI 摄影评分
           </p>
           <p className="text-[11px] text-cream-subtle">
-            {photos.length} photos · {scoredCount} reviewed
+            {photos.length} 张照片 · {scoredCount} 张已评分
           </p>
         </div>
       </footer>
