@@ -135,7 +135,7 @@ def load_models():
 
 
 def generate_review(score: float) -> str:
-    """根据美学分数生成点评"""
+    """根据美学分数生成简洁总评（详细点评由 Gemini 生成）"""
     if score >= 0.85:
         return "构图精妙，色彩和谐，具有专业级视觉冲击力。"
     elif score >= 0.70:

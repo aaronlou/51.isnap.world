@@ -30,7 +30,7 @@ use infrastructure::{
     db::sqlite::SqlitePhotoRepository,
     http::{
         artimuse_client::ArtiMuseClient, gemini_client::GeminiClient,
-        volcengine_client::VolcEngineClient,
+        gemini_reviewer::GeminiReviewer, volcengine_client::VolcEngineClient,
     },
     storage::local_file_storage::LocalFileStorage,
 };
@@ -124,7 +124,7 @@ async fn main() {
 
     if !gemini_api_key.is_empty() {
         info!("Gemini scoring enabled");
-        coordinator.register(Box::new(GeminiClient::new(gemini_api_key)));
+        coordinator.register(Box::new(GeminiClient::new(gemini_api_key.clone())));
     }
 
     if artimuse_enabled {
@@ -146,7 +146,11 @@ async fn main() {
         upload_dir.clone(),
         base_url.clone(),
     );
-    let score_photo = ScorePhotoUseCase::new(repository.clone(), upload_dir, coordinator);
+    let mut score_photo = ScorePhotoUseCase::new(repository.clone(), upload_dir, coordinator);
+    if !gemini_api_key.is_empty() {
+        info!("Gemini review generation enabled");
+        score_photo = score_photo.with_reviewer(Box::new(GeminiReviewer::new(gemini_api_key)));
+    }
     let list_photos = ListPhotosUseCase::new(repository.clone(), base_url.clone());
     let get_leaderboard = GetLeaderboardUseCase::new(repository, base_url);
 

@@ -42,7 +42,7 @@ docker run -d \
   --name photo-battle-volcengine \
   --network "$NETWORK" \
   -v "$(pwd)/uploads:/app/uploads" \
-  -v volcengine_cache:/app/scripts/.model_cache \
+  -v volcengine_cache:/app/.model_cache \
   -e VOLCENGINE_PORT=8001 \
   -e VOLCENGINE_DEVICE=cpu \
   --restart unless-stopped \

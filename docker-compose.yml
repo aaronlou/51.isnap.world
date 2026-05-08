@@ -49,7 +49,7 @@ services:
       - VOLCENGINE_DEVICE=cpu
     volumes:
       - ./uploads:/app/uploads
-      - volcengine_cache:/app/scripts/.model_cache
+      - volcengine_cache:/app/.model_cache
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8001/health"]

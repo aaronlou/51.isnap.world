@@ -24,7 +24,9 @@ impl ScoringEngine for VolcEngineClient {
         let client = reqwest::Client::builder()
             .timeout(std::time::Duration::from_secs(30))
             .build()
-            .map_err(|e| DomainError::EngineUnavailable(format!("Failed to build HTTP client: {}", e)))?;
+            .map_err(|e| {
+                DomainError::EngineUnavailable(format!("Failed to build HTTP client: {}", e))
+            })?;
         let request_body = serde_json::json!({
             "image_path": image_path_str
         });
@@ -36,7 +38,9 @@ impl ScoringEngine for VolcEngineClient {
             .json(&request_body)
             .send()
             .await
-            .map_err(|e| DomainError::EngineUnavailable(format!("VolcEngine request failed: {}", e)))?;
+            .map_err(|e| {
+                DomainError::EngineUnavailable(format!("VolcEngine request failed: {}", e))
+            })?;
         tracing::info!("VolcEngine response status: {}", response.status());
 
         if !response.status().is_success() {
@@ -72,6 +76,7 @@ struct VolcEngineResponse {
 impl VolcEngineResponse {
     /// 从 VolcEngine API 原始 JSON 中提取评分
     fn from_raw(value: &serde_json::Value) -> Result<Self, DomainError> {
+        tracing::info!("原始模型反馈：{}", value);
         // 优先读取 aesthetic_score，兼容 score 字段
         let raw_score = value["aesthetic_score"]
             .as_f64()
