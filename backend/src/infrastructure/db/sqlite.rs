@@ -80,14 +80,24 @@ impl PhotoRepository for SqlitePhotoRepository {
     }
 
     async fn find_by_id(&self, id: &PhotoId) -> Result<Option<Photo>, DomainError> {
+        tracing::debug!("Looking up photo by id: {:?}", id.as_str());
         self.with_conn(|conn| {
             let mut stmt = conn.prepare(
                 "SELECT id, filename, score, review, uploaded_at, engine FROM photos WHERE id = ?1"
             )?;
             let mut rows = stmt.query([id.as_str()])?;
             if let Some(row) = rows.next()? {
+                tracing::info!("Found photo: {:?}", id.as_str());
                 Ok(Some(row_to_photo(row)?))
             } else {
+                tracing::warn!("Photo not found in DB: {:?}", id.as_str());
+                // 列出当前所有照片 ID
+                if let Ok(mut all_ids) = conn.prepare("SELECT id FROM photos") {
+                    if let Ok(ids) = all_ids.query_map([], |r| r.get::<_, String>(0)) {
+                        let ids: Vec<String> = ids.filter_map(|r| r.ok()).collect();
+                        tracing::warn!("Existing photo IDs in DB: {:?}", ids);
+                    }
+                }
                 Ok(None)
             }
         })
