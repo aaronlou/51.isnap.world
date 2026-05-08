@@ -2,6 +2,8 @@ use std::{fs, path::PathBuf, sync::Arc};
 
 use axum::{
     extract::DefaultBodyLimit,
+    http::StatusCode,
+    response::IntoResponse,
     routing::{get, post},
     Router,
 };
@@ -170,7 +172,15 @@ async fn main() {
         .layer(cors)
         .layer(TraceLayer::new_for_http())
         .layer(DefaultBodyLimit::max(50 * 1024 * 1024))
-        .with_state(state);
+        .with_state(state)
+        .fallback(|req: axum::http::Request<axum::body::Body>| async move {
+            tracing::warn!(
+                "FALLBACK: {} {} matched no route",
+                req.method(),
+                req.uri()
+            );
+            (StatusCode::NOT_FOUND, "no matching route").into_response()
+        });
 
     let listener = tokio::net::TcpListener::bind("0.0.0.0:3001")
         .await
