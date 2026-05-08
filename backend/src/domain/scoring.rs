@@ -51,6 +51,57 @@ impl ScoringCoordinator {
         Ok((fallback, "simulated"))
     }
 
+    /// 调用所有可用引擎评分并取平均（归一化到 5 分制后求平均）
+    /// 返回平均分、合并后的引擎名列表
+    pub async fn score_averaged(&self, image_path: &Path) -> Result<(Score, String), DomainError> {
+        let mut values = Vec::new();
+        let mut reviews = Vec::new();
+        let mut names = Vec::new();
+
+        for engine in &self.engines {
+            match engine.score(image_path).await {
+                Ok(score) => {
+                    tracing::info!(
+                        "Engine {} scored: {:.2}",
+                        engine.name(),
+                        score.value()
+                    );
+                    values.push(score.value());
+                    reviews.push(score.review().to_string());
+                    names.push(engine.name());
+                }
+                Err(e) => {
+                    tracing::warn!("Engine {} failed: {}, skipping", engine.name(), e);
+                }
+            }
+        }
+
+        if values.is_empty() {
+            let fallback = Score::new(
+                3.5,
+                "All AI judges are offline. Here's a neutral score to keep going! 🎈".to_string(),
+            )?;
+            return Ok((fallback, "simulated".to_string()));
+        }
+
+        // 所有分数归一化到 5 分制后求平均
+        let avg = values.iter().sum::<f32>() / values.len() as f32;
+
+        // 用第一个成功引擎的 review（通常是更详细的 AI 点评）
+        let review = reviews.into_iter().next().unwrap_or_default();
+
+        let engine_label = names.join(" + ");
+
+        tracing::info!(
+            "Averaged score: {:.2} from engines: {}, individual scores: {:?}",
+            avg,
+            engine_label,
+            values
+        );
+
+        Ok((Score::new(avg, review)?, engine_label))
+    }
+
     pub fn engine_count(&self) -> usize {
         self.engines.len()
     }

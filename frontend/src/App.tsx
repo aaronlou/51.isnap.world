@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Grid3X3, BarChart3 } from 'lucide-react'
+import { Camera, Grid3X3, BarChart3, Sparkles, Brain, Image as ImageIcon } from 'lucide-react'
 import UploadZone from '@/components/UploadZone'
 import ScoreReveal from '@/components/ScoreReveal'
 import Leaderboard from '@/components/Leaderboard'
@@ -158,6 +158,79 @@ export default function App() {
           )}
         </AnimatePresence>
       </main>
+
+      {/* AI Judging in Progress */}
+      <AnimatePresence>
+        {scoringId && !scoreResult && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-ink-950/80 backdrop-blur-sm"
+          >
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.97 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              className="bg-ink-900 border border-ink-800/80 rounded-3xl p-8 max-w-sm w-full"
+            >
+              <div className="text-center mb-6">
+                <div className="flex justify-center gap-3 mb-4">
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, repeat: Infinity }}
+                  >
+                    <ImageIcon className="w-8 h-8 text-gold-400" strokeWidth={1.5} />
+                  </motion.div>
+                  <motion.div
+                    animate={{ scale: [1, 1.1, 1] }}
+                    transition={{ duration: 2, delay: 0.3, repeat: Infinity }}
+                  >
+                    <Brain className="w-8 h-8 text-cyan-400" strokeWidth={1.5} />
+                  </motion.div>
+                </div>
+                <h3 className="text-lg font-medium text-cream mb-2">AI Judges in Session</h3>
+                <p className="text-sm text-cream-muted">Two AI models are evaluating your photo</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-ink-800/50 border border-ink-700/30">
+                  <motion.div
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1.5, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full bg-gold-400 shrink-0"
+                  />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-cream">VolcEngine</p>
+                    <p className="text-[10px] text-cream-subtle">Analyzing aesthetics & composition...</p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-ink-800/50 border border-ink-700/30">
+                  <motion.div
+                    animate={{ opacity: [0.4, 1, 0.4] }}
+                    transition={{ duration: 1.5, delay: 0.5, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full bg-cyan-400 shrink-0"
+                  />
+                  <div className="flex-1">
+                    <p className="text-xs font-medium text-cream">Gemini</p>
+                    <p className="text-[10px] text-cream-subtle">Evaluating composition & reviewing...</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-6 text-center">
+                <motion.div
+                  animate={{ opacity: [0.3, 1, 0.3] }}
+                  transition={{ duration: 2, repeat: Infinity }}
+                  className="text-[11px] text-cream-subtle"
+                >
+                  Deliberating...
+                </motion.div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* Score Reveal Modal */}
       <AnimatePresence>
