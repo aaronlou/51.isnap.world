@@ -14,7 +14,9 @@ use tower_http::{
 };
 use tracing::{info, warn};
 use tracing_appender::rolling;
-use tracing_subscriber::{filter::LevelFilter, layer::SubscriberExt, util::SubscriberInitExt, Layer as TracingLayer};
+use tracing_subscriber::{
+    filter::LevelFilter, layer::SubscriberExt, util::SubscriberInitExt, Layer as TracingLayer,
+};
 
 mod application;
 mod domain;
@@ -117,14 +119,14 @@ async fn main() {
     // 当前优先级：Gemini > VolcEngine > ArtiMuse > simulated
     let mut coordinator = ScoringCoordinator::new();
 
-    if volcengine_enabled {
-        info!("VolcEngine scoring enabled at {}", volcengine_url);
-        coordinator.register(Box::new(VolcEngineClient::new(volcengine_url)));
-    }
-
     if !gemini_api_key.is_empty() {
         info!("Gemini scoring enabled");
         coordinator.register(Box::new(GeminiClient::new(gemini_api_key.clone())));
+    }
+
+    if volcengine_enabled {
+        info!("VolcEngine scoring enabled at {}", volcengine_url);
+        coordinator.register(Box::new(VolcEngineClient::new(volcengine_url)));
     }
 
     if artimuse_enabled {
@@ -179,11 +181,7 @@ async fn main() {
         .layer(DefaultBodyLimit::max(50 * 1024 * 1024))
         .with_state(state)
         .fallback(|req: axum::http::Request<axum::body::Body>| async move {
-            tracing::warn!(
-                "FALLBACK: {} {} matched no route",
-                req.method(),
-                req.uri()
-            );
+            tracing::warn!("FALLBACK: {} {} matched no route", req.method(), req.uri());
             (StatusCode::NOT_FOUND, "no matching route").into_response()
         });
 
