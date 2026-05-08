@@ -24,8 +24,9 @@ mod infrastructure;
 mod presentation;
 
 use application::use_cases::{
-    get_leaderboard::GetLeaderboardUseCase, list_photos::ListPhotosUseCase,
-    score_photo::ScorePhotoUseCase, upload_photo::UploadPhotoUseCase,
+    delete_photo::DeletePhotoUseCase, get_leaderboard::GetLeaderboardUseCase,
+    list_photos::ListPhotosUseCase, score_photo::ScorePhotoUseCase,
+    upload_photo::UploadPhotoUseCase,
 };
 use domain::scoring::ScoringCoordinator;
 use infrastructure::{
@@ -44,6 +45,7 @@ pub struct AppState {
     pub score_photo: ScorePhotoUseCase<SqlitePhotoRepository>,
     pub list_photos: ListPhotosUseCase<SqlitePhotoRepository>,
     pub get_leaderboard: GetLeaderboardUseCase<SqlitePhotoRepository>,
+    pub delete_photo: DeletePhotoUseCase<SqlitePhotoRepository, LocalFileStorage>,
 }
 
 #[tokio::main]
@@ -144,23 +146,30 @@ async fn main() {
     // 应用层用例
     let upload_photo = UploadPhotoUseCase::new(
         repository.clone(),
-        file_storage,
+        file_storage.clone(),
         upload_dir.clone(),
         base_url.clone(),
     );
-    let mut score_photo = ScorePhotoUseCase::new(repository.clone(), upload_dir, coordinator);
+    let mut score_photo = ScorePhotoUseCase::new(repository.clone(), upload_dir.clone(), coordinator);
     if !gemini_api_key.is_empty() {
         info!("Gemini review generation enabled");
         score_photo = score_photo.with_reviewer(Box::new(GeminiReviewer::new(gemini_api_key)));
     }
     let list_photos = ListPhotosUseCase::new(repository.clone(), base_url.clone());
-    let get_leaderboard = GetLeaderboardUseCase::new(repository, base_url);
+    let get_leaderboard = GetLeaderboardUseCase::new(repository.clone(), base_url.clone());
+    let delete_photo = DeletePhotoUseCase::new(
+        repository,
+        file_storage,
+        upload_dir.clone(),
+        base_url,
+    );
 
     let state = Arc::new(AppState {
         upload_photo,
         score_photo,
         list_photos,
         get_leaderboard,
+        delete_photo,
     });
 
     let cors = CorsLayer::new()
@@ -173,6 +182,7 @@ async fn main() {
         .route("/api/upload", post(photos::upload_photo))
         .route("/api/leaderboard", get(leaderboard::get_leaderboard))
         .route("/api/photos/:id/score", post(photos::score_photo))
+        .route("/api/photos/:id", axum::routing::delete(photos::delete_photo))
         .route("/api/health", get(health::health_check))
         .nest_service("/uploads", ServeDir::new("./uploads"))
         .nest_service("/thumbnails", ServeDir::new("./uploads/thumbnails"))

@@ -125,6 +125,13 @@ impl PhotoRepository for SqlitePhotoRepository {
                 .map_err(|e| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(e)))
         })
     }
+
+    async fn delete(&self, id: &PhotoId) -> Result<(), DomainError> {
+        self.with_conn(|conn| {
+            conn.execute("DELETE FROM photos WHERE id = ?1", [id.as_str()])?;
+            Ok(())
+        })
+    }
 }
 
 /// 统一的行映射函数（消除字段映射的重复和索引错误风险）

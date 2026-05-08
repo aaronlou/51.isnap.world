@@ -8,6 +8,7 @@ pub trait PhotoRepository: Send + Sync {
     async fn find_by_id(&self, id: &PhotoId) -> Result<Option<Photo>, crate::domain::errors::DomainError>;
     async fn list_all(&self) -> Result<Vec<Photo>, crate::domain::errors::DomainError>;
     async fn list_top_scored(&self, limit: usize) -> Result<Vec<Photo>, crate::domain::errors::DomainError>;
+    async fn delete(&self, id: &PhotoId) -> Result<(), crate::domain::errors::DomainError>;
 }
 
 /// 文件存储端口（领域层定义，基础设施层实现）
@@ -17,4 +18,5 @@ pub trait FileStorage: Send + Sync {
     async fn write(&self, path: &std::path::Path, data: &[u8]) -> Result<(), crate::domain::errors::DomainError>;
     async fn read(&self, path: &std::path::Path) -> Result<Vec<u8>, crate::domain::errors::DomainError>;
     async fn exists(&self, path: &std::path::Path) -> bool;
+    async fn delete(&self, path: &std::path::Path) -> Result<(), crate::domain::errors::DomainError>;
 }

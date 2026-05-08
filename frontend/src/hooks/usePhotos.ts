@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchPhotos, uploadPhoto, scorePhoto } from '@/api/photos';
+import { fetchPhotos, uploadPhoto, scorePhoto, deletePhoto } from '@/api/photos';
 import type { Photo, ScoreResult } from '@/types/photo';
 
 export function usePhotos() {
@@ -63,6 +63,19 @@ export function usePhotos() {
     }
   };
 
+  const handleDelete = async (id: string): Promise<boolean> => {
+    if (!confirm('确定要删除这张照片吗？')) return false;
+    try {
+      await deletePhoto(id);
+      setPhotos(prev => prev.filter(p => p.id !== id));
+      return true;
+    } catch (err: any) {
+      console.error('Delete failed:', err);
+      alert(err.response?.data?.error || '删除失败');
+      return false;
+    }
+  };
+
   return {
     photos,
     isLoading,
@@ -72,5 +85,6 @@ export function usePhotos() {
     setScoreResult,
     handleUpload,
     handleScore,
+    handleDelete,
   };
 }

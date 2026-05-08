@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Loader2, ImageOff, X, ChevronLeft, ChevronRight } from 'lucide-react'
+import { Star, Loader2, ImageOff, X, ChevronLeft, ChevronRight, Trash2, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react'
 import type { Photo } from '@/types/photo'
 
 interface PhotoGalleryProps {
@@ -8,6 +8,7 @@ interface PhotoGalleryProps {
   isLoading: boolean
   onScore: (id: string) => void
   scoringId: string | null
+  onDelete?: (id: string) => void
 }
 
 export default function PhotoGallery({
@@ -15,8 +16,10 @@ export default function PhotoGallery({
   isLoading,
   onScore,
   scoringId,
+  onDelete,
 }: PhotoGalleryProps) {
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
+  const [expandedReview, setExpandedReview] = useState(false)
 
   if (isLoading) {
     return (
@@ -89,9 +92,16 @@ export default function PhotoGallery({
                 <div className="absolute bottom-0 left-0 right-0 p-3 translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-400">
                   <p className="text-[11px] text-cream truncate mb-1.5">{photo.filename}</p>
                   {hasScore ? (
-                    <div className="flex items-center gap-1.5">
-                      <Star className="w-3 h-3 fill-gold-400 text-gold-400" strokeWidth={1.5} />
-                      <span className="text-xs font-medium text-cream">{photo.score?.toFixed(1)}</span>
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5">
+                        <Star className="w-3 h-3 fill-gold-400 text-gold-400" strokeWidth={1.5} />
+                        <span className="text-xs font-medium text-cream">{photo.score?.toFixed(1)}</span>
+                      </div>
+                      {photo.review && (
+                        <p className="text-[10px] text-cream-subtle leading-relaxed line-clamp-2">
+                          {photo.review}
+                        </p>
+                      )}
                     </div>
                   ) : (
                     <button
@@ -110,6 +120,17 @@ export default function PhotoGallery({
                     <Star className="w-2.5 h-2.5 fill-gold-400 text-gold-400" strokeWidth={1.5} />
                     <span className="text-[10px] font-medium text-cream">{photo.score?.toFixed(1)}</span>
                   </div>
+                )}
+
+                {/* Delete button */}
+                {onDelete && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); onDelete(photo.id) }}
+                    className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-ink-950/60 backdrop-blur-sm border border-ink-700/40 flex items-center justify-center text-cream-subtle hover:text-red-400 hover:border-red-400/40 transition-all opacity-0 group-hover:opacity-100"
+                    title="删除照片"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
+                  </button>
                 )}
               </div>
             </motion.div>
@@ -169,21 +190,66 @@ export default function PhotoGallery({
             </motion.div>
 
             {/* Image info */}
-            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-4 bg-ink-900/80 backdrop-blur-md rounded-full px-5 py-2.5 border border-ink-700/40">
-              <span className="text-xs text-cream-muted">{photos[lightboxIndex].filename}</span>
-              {photos[lightboxIndex].score !== undefined && (
-                <>
-                  <span className="w-px h-3 bg-ink-700" />
-                  <div className="flex items-center gap-1.5">
-                    <Star className="w-3 h-3 fill-gold-400 text-gold-400" strokeWidth={1.5} />
-                    <span className="text-xs font-medium text-cream">{photos[lightboxIndex].score?.toFixed(1)}</span>
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4">
+              {/* Pills row */}
+              <div className="flex items-center justify-center gap-4 bg-ink-900/80 backdrop-blur-md rounded-full px-5 py-2.5 border border-ink-700/40 mx-auto w-fit mb-3">
+                <span className="text-xs text-cream-muted">{photos[lightboxIndex].filename}</span>
+                {photos[lightboxIndex].score !== undefined && (
+                  <>
+                    <span className="w-px h-3 bg-ink-700" />
+                    <div className="flex items-center gap-1.5">
+                      <Star className="w-3 h-3 fill-gold-400 text-gold-400" strokeWidth={1.5} />
+                      <span className="text-xs font-medium text-cream">{photos[lightboxIndex].score?.toFixed(1)}</span>
+                    </div>
+                  </>
+                )}
+                <span className="w-px h-3 bg-ink-700" />
+                <span className="text-[11px] text-cream-subtle">
+                  {lightboxIndex + 1} / {photos.length}
+                </span>
+              </div>
+
+              {/* Review panel */}
+              {photos[lightboxIndex].review && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.15 }}
+                  className="bg-ink-900/80 backdrop-blur-md rounded-2xl border border-ink-700/40 px-5 py-4"
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare className="w-3.5 h-3.5 text-gold-400" strokeWidth={1.5} />
+                    <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-gold-400">
+                      AI 点评
+                    </span>
                   </div>
-                </>
+                  <p
+                    className={`text-xs text-cream-muted leading-relaxed whitespace-pre-wrap ${
+                      expandedReview ? '' : 'line-clamp-3'
+                    }`}
+                  >
+                    {photos[lightboxIndex].review}
+                  </p>
+                  {photos[lightboxIndex].review && photos[lightboxIndex].review!.length > 100 && (
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setExpandedReview(!expandedReview) }}
+                      className="mt-2 flex items-center gap-1 text-[10px] text-cream-subtle hover:text-gold-400 transition-colors"
+                    >
+                      {expandedReview ? (
+                        <>
+                          <ChevronUp className="w-3 h-3" strokeWidth={1.5} />
+                          收起
+                        </>
+                      ) : (
+                        <>
+                          <ChevronDown className="w-3 h-3" strokeWidth={1.5} />
+                          展开完整点评
+                        </>
+                      )}
+                    </button>
+                  )}
+                </motion.div>
               )}
-              <span className="w-px h-3 bg-ink-700" />
-              <span className="text-[11px] text-cream-subtle">
-                {lightboxIndex + 1} / {photos.length}
-              </span>
             </div>
           </motion.div>
         )}

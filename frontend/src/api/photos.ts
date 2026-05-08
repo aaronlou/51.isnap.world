@@ -22,3 +22,8 @@ export async function scorePhoto(id: string): Promise<ScoreResult> {
   const res = await apiClient.post<ScoreResult>(`/api/photos/${id}/score`);
   return res.data;
 }
+
+export async function deletePhoto(id: string): Promise<Photo> {
+  const res = await apiClient.delete<Photo>(`/api/photos/${id}`);
+  return res.data;
+}

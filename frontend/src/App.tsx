@@ -27,6 +27,7 @@ export default function App() {
     setScoreResult,
     handleUpload,
     handleScore,
+    handleDelete,
   } = usePhotos()
 
   const { leaderboard, isLoading: isLoadingLeaderboard, loadLeaderboard } = useLeaderboard()
@@ -141,6 +142,7 @@ export default function App() {
                 isLoading={isLoadingPhotos}
                 onScore={(id) => handleScore(id)}
                 scoringId={scoringId}
+                onDelete={handleDelete}
               />
             </motion.div>
           )}

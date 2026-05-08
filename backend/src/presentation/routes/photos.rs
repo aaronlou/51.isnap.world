@@ -79,3 +79,13 @@ pub async fn score_photo(
     tracing::info!("score_photo handler succeeded for id: {}", id);
     Ok(Json(result))
 }
+
+pub async fn delete_photo(
+    State(state): State<Arc<AppState>>,
+    axum::extract::Path(id): axum::extract::Path<String>,
+) -> Result<impl IntoResponse, ApiError> {
+    tracing::info!("delete_photo handler called with id: {}", id);
+    let result = state.delete_photo.execute(&id).await?;
+    tracing::info!("delete_photo handler succeeded for id: {}", id);
+    Ok(Json(result))
+}
