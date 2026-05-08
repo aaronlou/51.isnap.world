@@ -1,9 +1,6 @@
 use crate::application::dto::ScoreResultDto;
 use crate::domain::{
-    errors::DomainError,
-    photo::PhotoId,
-    repository::PhotoRepository,
-    scoring::ScoringCoordinator,
+    errors::DomainError, photo::PhotoId, repository::PhotoRepository, scoring::ScoringCoordinator,
 };
 
 /// 照片评分用例
@@ -36,7 +33,7 @@ impl<R: PhotoRepository> ScorePhotoUseCase<R> {
             .find_by_id(&id)
             .await?
             .ok_or_else(|| DomainError::PhotoNotFound(photo_id.to_string()))?;
-
+        tracing::info!("找到了 photo: {}", photo_id.to_string());
         // 2. 调用评分引擎（通过协调器）
         let image_path = photo.storage_path(&self.upload_dir);
         let (score, engine_name) = self.coordinator.score(&image_path).await?;
