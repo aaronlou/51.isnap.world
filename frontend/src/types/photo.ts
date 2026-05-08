@@ -4,6 +4,7 @@ export interface Photo {
   score?: number;
   review?: string;
   url: string;
+  thumbnail_url: string;
   uploaded_at: string;
   engine?: string;
 }

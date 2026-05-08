@@ -13,6 +13,7 @@ pub struct PhotoDto {
     pub review: Option<String>,
     pub uploaded_at: DateTime<Utc>,
     pub url: String,
+    pub thumbnail_url: String,
     pub engine: Option<String>,
 }
 
@@ -25,6 +26,7 @@ impl PhotoDto {
             review: photo.review.clone(),
             uploaded_at: photo.uploaded_at,
             url: photo.url(base_url),
+            thumbnail_url: photo.thumbnail_url(base_url),
             engine: photo.engine.clone(),
         }
     }

@@ -44,7 +44,24 @@ impl<R: PhotoRepository, S: FileStorage> UploadPhotoUseCase<R, S> {
         let path = photo.storage_path(&self.upload_dir);
         self.file_storage.write(&path, &file.data).await?;
         info!("File saved to {}", path.display());
-        // 4. 持久化实体
+
+        // 4. 生成缩略图（300px 宽，加速 Gallery 加载）
+        let thumb_dir = self.upload_dir.join("thumbnails");
+        std::fs::create_dir_all(&thumb_dir).ok();
+        let thumb_path = thumb_dir.join(format!("{}.jpg", photo.id.as_str()));
+        match image::load_from_memory(&file.data) {
+            Ok(img) => {
+                let thumb = img.thumbnail(300, 300);
+                let thumb_data = thumb.to_rgb8();
+                match thumb_data.save(&thumb_path) {
+                    Ok(_) => info!("Thumbnail saved to {}", thumb_path.display()),
+                    Err(e) => tracing::warn!("Failed to save thumbnail: {}", e),
+                }
+            }
+            Err(e) => tracing::warn!("Failed to generate thumbnail: {}", e),
+        }
+
+        // 5. 持久化实体
         self.repository.save(&photo).await?;
 
         // 5. 返回 DTO

@@ -66,6 +66,11 @@ impl Photo {
         format!("{}/uploads/{}.jpg", base_url, self.id.as_str())
     }
 
+    /// 构建缩略图的公开 URL
+    pub fn thumbnail_url(&self, base_url: &str) -> String {
+        format!("{}/thumbnails/{}.jpg", base_url, self.id.as_str())
+    }
+
     /// 构建存储路径（消除路径构建的重复）
     pub fn storage_path(&self, upload_dir: &std::path::Path) -> std::path::PathBuf {
         upload_dir.join(format!("{}.jpg", self.id.as_str()))
