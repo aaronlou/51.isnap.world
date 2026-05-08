@@ -25,6 +25,7 @@ services:
       - UPLOAD_DIR=/app/uploads
     volumes:
       - ./uploads:/app/uploads
+      - ./logs:/app/logs
       - backend_db:/app/data
     depends_on:
       volcengine:

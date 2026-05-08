@@ -66,6 +66,7 @@ docker run -d \
   --network "$NETWORK" \
   -p 3001:3001 \
   -v "$(pwd)/uploads:/app/uploads" \
+  -v "$(pwd)/logs:/app/logs" \
   -v backend_db:/app/data \
   --env-file .env \
   -e VOLCENGINE_URL=http://volcengine:8001 \
