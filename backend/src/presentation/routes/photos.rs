@@ -74,6 +74,8 @@ pub async fn score_photo(
     State(state): State<Arc<AppState>>,
     axum::extract::Path(id): axum::extract::Path<String>,
 ) -> Result<impl IntoResponse, ApiError> {
+    tracing::info!("score_photo handler called with id: {}", id);
     let result = state.score_photo.execute(&id).await?;
+    tracing::info!("score_photo handler succeeded for id: {}", id);
     Ok(Json(result))
 }
