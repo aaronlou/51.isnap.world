@@ -5,7 +5,7 @@ use base64::{engine::general_purpose::STANDARD, Engine};
 use crate::domain::{errors::DomainError, review::ReviewGenerator};
 
 const GEMINI_API_URL: &str =
-    "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent";
+    "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent";
 
 const PROMPT: &str = r#"You are a professional photography critic. Analyze this photo and write a concise review covering composition, lighting, color, subject, technical execution, and emotional impact.
 
