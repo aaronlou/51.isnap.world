@@ -166,7 +166,7 @@ async fn main() {
         .route("/api/photos", get(photos::list_photos))
         .route("/api/upload", post(photos::upload_photo))
         .route("/api/leaderboard", get(leaderboard::get_leaderboard))
-        .route("/api/photos/{id}/score", post(photos::score_photo))
+        .route("/api/photos/:id/score", post(photos::score_photo))
         .route("/api/health", get(health::health_check))
         .nest_service("/uploads", ServeDir::new("./uploads"))
         .layer(cors)
