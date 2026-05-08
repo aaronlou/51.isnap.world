@@ -17,6 +17,7 @@ const tabs: { id: Tab; label: string; icon: typeof Camera }[] = [
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('upload')
+  const [scoredRank, setScoredRank] = useState<number | null>(null)
   const {
     photos,
     isLoading: isLoadingPhotos,
@@ -30,17 +31,32 @@ export default function App() {
 
   const { leaderboard, isLoading: isLoadingLeaderboard, loadLeaderboard } = useLeaderboard()
 
+  // When score result appears, reload leaderboard and compute rank
   useEffect(() => {
     if (scoreResult) {
       loadLeaderboard()
     }
   }, [scoreResult, loadLeaderboard])
 
+  // When leaderboard updates after scoring, compute rank
+  useEffect(() => {
+    if (scoreResult && leaderboard.length > 0) {
+      const idx = leaderboard.findIndex((p) => p.id === scoreResult.id)
+      setScoredRank(idx >= 0 ? idx + 1 : null)
+    }
+  }, [leaderboard, scoreResult])
+
   const onUpload = async (file: File) => {
+    setScoredRank(null)
     const newPhoto = await handleUpload(file)
     if (newPhoto) {
       setTimeout(() => handleScore(newPhoto.id), 400)
     }
+  }
+
+  const handleCloseScore = () => {
+    setScoreResult(null)
+    setScoredRank(null)
   }
 
   const scoredCount = photos.filter((p) => p.score !== undefined).length
@@ -151,7 +167,13 @@ export default function App() {
             review={scoreResult.review}
             filename={photos.find((p) => p.id === scoreResult.id)?.filename ?? ''}
             engine={photos.find((p) => p.id === scoreResult.id)?.engine}
-            onClose={() => setScoreResult(null)}
+            rank={scoredRank}
+            totalScored={leaderboard.length}
+            onClose={handleCloseScore}
+            onViewLeaderboard={() => {
+              handleCloseScore()
+              setActiveTab('leaderboard')
+            }}
           />
         )}
       </AnimatePresence>
@@ -160,7 +182,7 @@ export default function App() {
       <footer className="fixed bottom-0 left-0 right-0 z-30 bg-ink-950/60 backdrop-blur-md border-t border-ink-800/20">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <p className="text-[11px] text-cream-subtle tracking-wide">
-            AI Photography Critique
+            Photo Battle Arena
           </p>
           <p className="text-[11px] text-cream-subtle">
             {photos.length} photos · {scoredCount} reviewed

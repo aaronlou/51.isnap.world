@@ -1,13 +1,65 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Star, Quote, ChevronDown, ChevronUp, Sparkles } from 'lucide-react'
+import { X, Star, Quote, ChevronDown, ChevronUp, Sparkles, Crown, Trophy, Swords, ArrowUp } from 'lucide-react'
 
 interface ScoreRevealProps {
   score: number
   review: string
   filename: string
   engine?: string
+  rank?: number | null
+  totalScored?: number
   onClose: () => void
+  onViewLeaderboard?: () => void
+}
+
+function Confetti({ isPodium }: { isPodium: boolean }) {
+  if (!isPodium) return null
+  const colors = ['#FFD700', '#FF6B35', '#00E5FF', '#FF4081', '#76FF03', '#E040FB']
+  const particles = Array.from({ length: 40 }, (_, i) => ({
+    id: i,
+    x: Math.random() * 100,
+    delay: Math.random() * 0.5,
+    color: colors[i % colors.length],
+    size: 4 + Math.random() * 8,
+    rotate: Math.random() * 360,
+  }))
+  return (
+    <div className="absolute inset-0 pointer-events-none overflow-hidden">
+      {particles.map((p) => (
+        <motion.div
+          key={p.id}
+          className="absolute"
+          style={{
+            left: `${p.x}%`,
+            top: -10,
+            width: p.size,
+            height: p.size * 1.5,
+            borderRadius: 2,
+            backgroundColor: p.color,
+          }}
+          initial={{ y: -20, rotate: 0, opacity: 1 }}
+          animate={{
+            y: [null, 500 + Math.random() * 300],
+            rotate: p.rotate,
+            opacity: [1, 0.8, 0],
+          }}
+          transition={{
+            duration: 2 + Math.random() * 1.5,
+            delay: p.delay,
+            ease: [0.25, 0.1, 0.25, 1],
+          }}
+        />
+      ))}
+    </div>
+  )
+}
+
+function RankBadge({ rank }: { rank: number }) {
+  if (rank === 1) return <div className="flex items-center gap-1.5 text-gold-400"><Crown className="w-5 h-5" strokeWidth={1.5} /><span className="text-sm font-bold">#1</span></div>
+  if (rank === 2) return <div className="flex items-center gap-1.5 text-cream-muted"><Trophy className="w-5 h-5" strokeWidth={1.5} /><span className="text-sm font-bold">#2</span></div>
+  if (rank === 3) return <div className="flex items-center gap-1.5 text-amber-600"><Trophy className="w-5 h-5" strokeWidth={1.5} /><span className="text-sm font-bold">#3</span></div>
+  return <div className="flex items-center gap-1.5 text-cream-subtle"><ArrowUp className="w-4 h-4" strokeWidth={1.5} /><span className="text-sm font-medium">#{rank}</span></div>
 }
 
 export default function ScoreReveal({
@@ -15,7 +67,10 @@ export default function ScoreReveal({
   review,
   filename,
   engine,
+  rank,
+  totalScored,
   onClose,
+  onViewLeaderboard,
 }: ScoreRevealProps) {
   const [displayScore, setDisplayScore] = useState(0)
   const [phase, setPhase] = useState<'counting' | 'revealed'>('counting')
@@ -39,14 +94,15 @@ export default function ScoreReveal({
     return () => clearInterval(timer)
   }, [score])
 
-  const getRankLabel = (s: number) => {
-    if (s >= 4.5) return 'Legendary'
-    if (s >= 4.0) return 'Masterpiece'
-    if (s >= 3.5) return 'Exceptional'
-    if (s >= 3.0) return 'Promising'
-    if (s >= 2.0) return 'Developing'
-    return 'Observer'
-  }
+  const isPodium = rank !== null && rank !== undefined && rank <= 3
+  const rankLabel = useMemo(() => {
+    if (score >= 4.5) return { label: 'Legendary', sub: 'A masterpiece for the ages' }
+    if (score >= 4.0) return { label: 'Masterpiece', sub: 'Outstanding photographic work' }
+    if (score >= 3.5) return { label: 'Exceptional', sub: 'A strong contender in the arena' }
+    if (score >= 3.0) return { label: 'Promising', sub: 'Great potential, keep shooting' }
+    if (score >= 2.0) return { label: 'Developing', sub: 'Building your photographic eye' }
+    return { label: 'Observer', sub: 'Study the masters and try again' }
+  }, [score])
 
   const parseAttributes = (reviewText: string): { title: string; content: string }[] => {
     const attributes: { title: string; content: string }[] = []
@@ -61,7 +117,6 @@ export default function ScoreReveal({
   const attributes = parseAttributes(review)
   const hasAttributes = attributes.length > 0
   const engineLabel = engine === 'artimuse' ? 'ArtiMuse' : engine === 'gemini' ? 'Gemini' : engine === 'volcengine' ? 'VolcEngine' : 'AI'
-
   const filledStars = Math.round(score)
 
   return (
@@ -81,7 +136,9 @@ export default function ScoreReveal({
         className="relative w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="bg-ink-900 border border-ink-800/80 rounded-3xl overflow-hidden">
+        <div className="relative bg-ink-900 border border-ink-800/80 rounded-3xl overflow-hidden">
+          <Confetti isPodium={isPodium && phase === 'revealed'} />
+
           {/* Close */}
           <button
             onClick={onClose}
@@ -91,19 +148,22 @@ export default function ScoreReveal({
           </button>
 
           <div className="p-8 md:p-10">
-            {/* Engine */}
-            <div className="flex items-center gap-2 mb-8">
-              <Sparkles className="w-3.5 h-3.5 text-gold-400" strokeWidth={1.5} />
+            {/* Battle header */}
+            <div className="flex items-center gap-2 mb-6">
+              <Swords className="w-3.5 h-3.5 text-gold-400" strokeWidth={1.5} />
               <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
-                {engineLabel} Critique
+                Battle Result
               </span>
+              <span className="text-cream-subtle mx-1">·</span>
+              <Sparkles className="w-3 h-3 text-cream-subtle" strokeWidth={1.5} />
+              <span className="text-[11px] text-cream-subtle">{engineLabel}</span>
             </div>
 
             {/* Filename */}
             <p className="text-xs text-cream-subtle mb-8 truncate">{filename}</p>
 
             {/* Score */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-6">
               <motion.div
                 className="heading-display text-8xl md:text-9xl text-cream leading-none mb-3"
                 style={{ fontWeight: 300 }}
@@ -138,19 +198,72 @@ export default function ScoreReveal({
                 ))}
               </div>
 
-              {/* Rank */}
+              {/* Rank + Tier */}
               <AnimatePresence>
                 {phase === 'revealed' && (
-                  <motion.span
+                  <motion.div
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="inline-block text-xs font-medium tracking-[0.1em] uppercase text-gold-400 bg-gold-400/8 px-4 py-1.5 rounded-full"
+                    className="space-y-3"
                   >
-                    {getRankLabel(score)}
-                  </motion.span>
+                    <span className="inline-block text-xs font-medium tracking-[0.1em] uppercase text-gold-400 bg-gold-400/8 px-4 py-1.5 rounded-full">
+                      {rankLabel.label}
+                    </span>
+                    <p className="text-[11px] text-cream-subtle">{rankLabel.sub}</p>
+                  </motion.div>
                 )}
               </AnimatePresence>
             </div>
+
+            {/* Battle ranking result */}
+            <AnimatePresence>
+              {phase === 'revealed' && rank !== null && rank !== undefined && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ delay: 0.3 }}
+                  className={`text-center mb-6 p-4 rounded-2xl border ${
+                    isPodium
+                      ? 'bg-gold-400/5 border-gold-400/20'
+                      : 'bg-ink-800/30 border-ink-700/30'
+                  }`}
+                >
+                  {isPodium ? (
+                    <div className="space-y-2">
+                      <div className="flex justify-center">
+                        <RankBadge rank={rank} />
+                      </div>
+                      <p className="text-sm font-medium text-cream">
+                        {rank === 1
+                          ? '🏆 You reign supreme in the arena!'
+                          : rank === 2
+                          ? '🥈 A stunning performance — on the podium!'
+                          : '🥉 Bronze medalist! A remarkable entry!'}
+                      </p>
+                      <p className="text-[11px] text-cream-subtle">
+                        Top {rank} of {totalScored || '—'} challengers
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      <div className="flex justify-center">
+                        <RankBadge rank={rank} />
+                      </div>
+                      <p className="text-sm text-cream-muted">
+                        {rank <= 10
+                          ? `Close fight! You're in the top tier.`
+                          : `A good start on your photographic journey.`}
+                      </p>
+                      <p className="text-[11px] text-cream-subtle">
+                        {rank <= 10
+                          ? 'Study the top entries and refine your craft.'
+                          : 'Every master was once a beginner. Keep shooting!'}
+                      </p>
+                    </div>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
 
             {/* Review */}
             <AnimatePresence>
@@ -158,7 +271,7 @@ export default function ScoreReveal({
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.2 }}
+                  transition={{ delay: 0.5 }}
                 >
                   <div className="relative bg-ink-800/50 rounded-2xl p-5 border border-ink-700/40 mb-4">
                     <Quote className="absolute top-3 left-3 w-4 h-4 text-ink-600" strokeWidth={1.5} />
@@ -219,6 +332,25 @@ export default function ScoreReveal({
                       </AnimatePresence>
                     </div>
                   )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* View leaderboard CTA */}
+            <AnimatePresence>
+              {phase === 'revealed' && onViewLeaderboard && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.8 }}
+                  className="mt-6 text-center"
+                >
+                  <button
+                    onClick={onViewLeaderboard}
+                    className="text-[11px] font-medium tracking-[0.1em] uppercase text-gold-400 hover:text-gold-300 transition-colors"
+                  >
+                    View Full Rankings →
+                  </button>
                 </motion.div>
               )}
             </AnimatePresence>
