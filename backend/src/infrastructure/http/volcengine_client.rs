@@ -92,11 +92,19 @@ impl VolcEngineResponse {
         Ok(Self { raw_score, review })
     }
 
-    /// 转换为领域 Score 值对象（0-1 → 0-5 归一化）
+    /// 转换为领域 Score 值对象（0-1 → 0-5 非线性归一化）
+    ///
+    /// VolcEngine 美学模型的原始输出高度集中在 0.9+ 区间，线性映射会导致
+    /// 所有分数挤在 4.5-5.0 之间。使用对数映射拉开高分区差距：
+    /// - 0.997 → ~5.0
+    /// - 0.994 → ~4.4
+    /// - 0.991 → ~4.1
+    /// - 0.95  → ~2.6
+    /// - 0.90  → ~2.0
     fn to_domain_score(self) -> Result<Score, DomainError> {
-        // VolcEngine 输出 0.0-1.0，映射到 0.0-5.0
-        let normalized = self.raw_score * 5.0;
-        Score::new(normalized, self.review)
+        let safe_raw = self.raw_score.min(0.9999);
+        let normalized = (-(1.0 - safe_raw).log10()) * 2.0;
+        Score::new(normalized.clamp(0.0, 5.0), self.review)
     }
 
     /// 根据美学分数自动生成点评文案
