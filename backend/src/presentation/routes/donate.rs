@@ -26,34 +26,6 @@ pub struct CreateDonationResponse {
     url: String,
 }
 
-#[derive(Debug, Serialize)]
-struct StripeCheckoutSessionRequest {
-    line_items: Vec<StripeLineItem>,
-    mode: String,
-    success_url: String,
-    cancel_url: String,
-    payment_method_types: Vec<String>,
-}
-
-#[derive(Debug, Serialize)]
-struct StripeLineItem {
-    price_data: StripePriceData,
-    quantity: i32,
-}
-
-#[derive(Debug, Serialize)]
-struct StripePriceData {
-    currency: String,
-    unit_amount: i64,
-    product_data: StripeProductData,
-}
-
-#[derive(Debug, Serialize)]
-struct StripeProductData {
-    name: String,
-    description: String,
-}
-
 #[derive(Debug, Deserialize)]
 struct StripeCheckoutSessionResponse {
     url: String,
@@ -70,36 +42,34 @@ pub async fn create_checkout_session(
         .or_else(|_| std::env::var("BASE_URL"))
         .unwrap_or_else(|_| "http://localhost:3001".to_string());
 
-    let currency = payload.currency.to_lowercase();
-    let currency_label = if currency == "usd" { "$" } else { "£" };
-
     // Stripe 要求金额至少为 50 分
     let amount = payload.amount.max(50);
+    let currency = payload.currency.to_lowercase();
 
-    let session_req = StripeCheckoutSessionRequest {
-        line_items: vec![StripeLineItem {
-            price_data: StripePriceData {
-                currency: currency.clone(),
-                unit_amount: amount,
-                product_data: StripeProductData {
-                    name: "支持摄影大乱斗".to_string(),
-                    description: format!("感谢您的支持，这将帮助我们持续改进产品"),
-                },
-            },
-            quantity: 1,
-        }],
-        mode: "payment".to_string(),
-        success_url: format!("{}?donate=success", frontend_url),
-        cancel_url: format!("{}?donate=cancel", frontend_url),
-        // TODO: 等 Stripe Dashboard Alipay 审批通过后，加回 "alipay"
-        payment_method_types: vec!["card".to_string()],
-    };
+    // Stripe API 需要 form-encoded 格式
+    let params: Vec<(String, String)> = vec![
+        ("mode".to_string(), "payment".to_string()),
+        ("success_url".to_string(), format!("{}?donate=success", frontend_url)),
+        ("cancel_url".to_string(), format!("{}?donate=cancel", frontend_url)),
+        ("payment_method_types[0]".to_string(), "card".to_string()),
+        ("line_items[0][price_data][currency]".to_string(), currency),
+        ("line_items[0][price_data][unit_amount]".to_string(), amount.to_string()),
+        (
+            "line_items[0][price_data][product_data][name]".to_string(),
+            "支持摄影大乱斗".to_string(),
+        ),
+        (
+            "line_items[0][price_data][product_data][description]".to_string(),
+            "感谢您的支持，这将帮助我们持续改进产品".to_string(),
+        ),
+        ("line_items[0][quantity]".to_string(), "1".to_string()),
+    ];
 
     let client = reqwest::Client::new();
     let resp = client
         .post("https://api.stripe.com/v1/checkout/sessions")
         .basic_auth(&secret_key, Some(""))
-        .json(&session_req)
+        .form(&params)
         .send()
         .await
         .map_err(|e| ApiError::External(format!("Stripe request failed: {}", e)))?;
