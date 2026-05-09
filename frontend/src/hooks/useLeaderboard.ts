@@ -18,9 +18,7 @@ export function useLeaderboard() {
     }
   }, []);
 
-  useEffect(() => {
-    loadLeaderboard();
-  }, [loadLeaderboard]);
+  // 延迟加载：由调用方（App）在切换到 leaderboard tab 时触发
 
   return { leaderboard, isLoading, loadLeaderboard };
 }

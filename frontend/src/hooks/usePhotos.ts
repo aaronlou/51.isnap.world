@@ -21,9 +21,7 @@ export function usePhotos() {
     }
   }, []);
 
-  useEffect(() => {
-    loadPhotos();
-  }, [loadPhotos]);
+  // 延迟加载：由调用方（App）在切换到 gallery tab 时触发
 
   const handleUpload = async (file: File): Promise<Photo | null> => {
     setIsUploading(true);
@@ -86,5 +84,6 @@ export function usePhotos() {
     handleUpload,
     handleScore,
     handleDelete,
+    loadPhotos,
   };
 }

@@ -28,9 +28,24 @@ export default function App() {
     handleUpload,
     handleScore,
     handleDelete,
+    loadPhotos,
   } = usePhotos()
 
   const { leaderboard, isLoading: isLoadingLeaderboard, loadLeaderboard } = useLeaderboard()
+
+  // 切换到 gallery 时才加载照片数据
+  useEffect(() => {
+    if (activeTab === 'gallery' && photos.length === 0) {
+      loadPhotos()
+    }
+  }, [activeTab, photos.length, loadPhotos])
+
+  // 切换到 leaderboard 时才加载排行榜数据
+  useEffect(() => {
+    if (activeTab === 'leaderboard' && leaderboard.length === 0) {
+      loadLeaderboard()
+    }
+  }, [activeTab, leaderboard.length, loadLeaderboard])
 
   // When score result appears, reload leaderboard and compute rank
   useEffect(() => {
