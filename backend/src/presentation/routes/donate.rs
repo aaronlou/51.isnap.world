@@ -91,7 +91,8 @@ pub async fn create_checkout_session(
         mode: "payment".to_string(),
         success_url: format!("{}?donate=success", frontend_url),
         cancel_url: format!("{}?donate=cancel", frontend_url),
-        payment_method_types: vec!["card".to_string(), "alipay".to_string()],
+        // TODO: 等 Stripe Dashboard Alipay 审批通过后，加回 "alipay"
+        payment_method_types: vec!["card".to_string()],
     };
 
     let client = reqwest::Client::new();
