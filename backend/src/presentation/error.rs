@@ -18,6 +18,8 @@ use crate::domain::errors::DomainError;
 pub enum ApiError {
     /// 领域层错误（自动从 DomainError 转换）
     Domain(DomainError),
+    /// 外部服务错误（如 Stripe API 调用失败）
+    External(String),
 }
 
 impl From<DomainError> for ApiError {
@@ -29,6 +31,7 @@ impl From<DomainError> for ApiError {
 impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_msg) = match self {
+            ApiError::External(msg) => (StatusCode::BAD_GATEWAY, msg),
             ApiError::Domain(err) => match err {
                 DomainError::FileTooLarge { .. } => {
                     (StatusCode::PAYLOAD_TOO_LARGE, err.to_string())

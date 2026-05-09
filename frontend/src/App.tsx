@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Grid3X3, BarChart3, Sparkles, Brain, Image as ImageIcon } from 'lucide-react'
+import { Camera, Grid3X3, BarChart3, Sparkles, Brain, Image as ImageIcon, Heart } from 'lucide-react'
 import UploadZone from '@/components/UploadZone'
 import ScoreReveal from '@/components/ScoreReveal'
 import Leaderboard from '@/components/Leaderboard'
 import PhotoGallery from '@/components/PhotoGallery'
+import DonateModal from '@/components/DonateModal'
 import { usePhotos } from '@/hooks/usePhotos'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
 import type { Tab } from '@/types/photo'
@@ -18,6 +19,8 @@ const tabs: { id: Tab; label: string; icon: typeof Camera }[] = [
 export default function App() {
   const [activeTab, setActiveTab] = useState<Tab>('upload')
   const [scoredRank, setScoredRank] = useState<number | null>(null)
+  const [showDonate, setShowDonate] = useState(false)
+  const [donateNotice, setDonateNotice] = useState<string | null>(null)
   const {
     photos,
     isLoading: isLoadingPhotos,
@@ -46,6 +49,24 @@ export default function App() {
       loadLeaderboard()
     }
   }, [activeTab, leaderboard.length, loadLeaderboard])
+
+  // 处理 Stripe 打赏回调
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const donateStatus = params.get('donate')
+    if (donateStatus === 'success') {
+      setDonateNotice('感谢您的支持！❤️')
+      window.history.replaceState({}, '', window.location.pathname)
+      const timer = setTimeout(() => setDonateNotice(null), 4000)
+      return () => clearTimeout(timer)
+    }
+    if (donateStatus === 'cancel') {
+      setDonateNotice('支付已取消，期待您的下次支持')
+      window.history.replaceState({}, '', window.location.pathname)
+      const timer = setTimeout(() => setDonateNotice(null), 4000)
+      return () => clearTimeout(timer)
+    }
+  }, [])
 
   // When score result appears, reload leaderboard and compute rank
   useEffect(() => {
@@ -90,9 +111,18 @@ export default function App() {
               竞技场
             </span>
           </div>
-          <div className="hidden sm:flex items-center gap-2 text-xs text-cream-muted">
-            <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
-            <span>{scoredCount} 张已评分</span>
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setShowDonate(true)}
+              className="flex items-center gap-1.5 text-xs text-cream-muted hover:text-gold-400 transition-colors"
+            >
+              <Heart className="w-3.5 h-3.5" strokeWidth={1.5} />
+              <span>打赏</span>
+            </button>
+            <div className="hidden sm:flex items-center gap-2 text-xs text-cream-muted">
+              <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
+              <span>{scoredCount} 张已评分</span>
+            </div>
           </div>
         </div>
       </header>
@@ -265,6 +295,23 @@ export default function App() {
               setActiveTab('leaderboard')
             }}
           />
+        )}
+      </AnimatePresence>
+
+      {/* Donate Modal */}
+      <DonateModal isOpen={showDonate} onClose={() => setShowDonate(false)} />
+
+      {/* Donate notice toast */}
+      <AnimatePresence>
+        {donateNotice && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-50 bg-ink-900 border border-gold-400/30 rounded-full px-6 py-2.5 text-sm text-gold-400 shadow-lg"
+          >
+            {donateNotice}
+          </motion.div>
         )}
       </AnimatePresence>
 

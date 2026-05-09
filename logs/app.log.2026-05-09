@@ -1,0 +1,81 @@
+2026-05-09T08:56:10.942862Z  INFO photo_battle_backend::infrastructure::db::sqlite: Database initialized at /app/data/photos.db
+2026-05-09T08:56:10.942903Z  INFO photo_battle_backend: Gemini scoring enabled
+2026-05-09T08:56:10.942926Z  INFO photo_battle_backend: VolcEngine scoring enabled at http://volcengine:8001
+2026-05-09T08:56:10.942929Z  INFO photo_battle_backend: Gemini review generation enabled
+2026-05-09T08:56:10.943044Z  INFO photo_battle_backend: 🚀 Shutter Quest backend running on http://0.0.0.0:3001
+2026-05-09T08:56:25.362783Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:56:25.362803Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:56:40.985829Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:56:40.985850Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:57:04.545215Z DEBUG request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:57:04.545313Z DEBUG request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=502
+2026-05-09T08:57:04.545322Z ERROR request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms
+2026-05-09T08:57:11.042163Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:57:11.042192Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:57:41.097167Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:57:41.097205Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:58:11.144037Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:58:11.144067Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:58:21.096865Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/photos [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:58:21.097194Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/photos [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:58:41.174720Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:58:41.174740Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:59:11.237050Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:59:11.237262Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:59:41.289949Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:59:41.289972Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T08:59:46.433428Z  INFO photo_battle_backend::infrastructure::db::sqlite: Database initialized at /app/data/photos.db
+2026-05-09T08:59:46.433459Z  INFO photo_battle_backend: Gemini scoring enabled
+2026-05-09T08:59:46.433461Z  INFO photo_battle_backend: VolcEngine scoring enabled at http://volcengine:8001
+2026-05-09T08:59:46.433463Z  INFO photo_battle_backend: Gemini review generation enabled
+2026-05-09T08:59:46.433678Z  INFO photo_battle_backend: 🚀 Shutter Quest backend running on http://0.0.0.0:3001
+2026-05-09T08:59:49.592823Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T08:59:49.592850Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:00:01.931129Z DEBUG request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:00:01.931333Z DEBUG request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=502
+2026-05-09T09:00:01.931421Z ERROR request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms
+2026-05-09T09:00:16.489621Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:00:16.489646Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:00:46.543500Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:00:46.543529Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:01:16.598264Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:01:16.598294Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:01:46.642025Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:01:46.642050Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:02:16.690031Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:02:16.690055Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:02:46.723830Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:02:46.723849Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:03:16.758376Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:03:16.758420Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:03:38.246479Z DEBUG request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:03:38.246607Z DEBUG request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=502
+2026-05-09T09:03:38.246626Z ERROR request{[3mmethod[0m[2m=[0mPOST [3muri[0m[2m=[0m/api/donate [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms
+2026-05-09T09:03:46.794949Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:03:46.794978Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:04:16.844614Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:04:16.844635Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:04:46.898751Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:04:46.898772Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:05:16.943296Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:05:16.943320Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:05:46.995019Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:05:46.995041Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:06:17.043883Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:06:17.043905Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:06:47.079389Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:06:47.079411Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:07:17.120102Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:07:17.120137Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:07:47.158345Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:07:47.158379Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:08:17.204805Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:08:17.204830Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:08:47.248815Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:08:47.248851Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:09:17.288988Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:09:17.289010Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:09:47.337618Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:09:47.337652Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200
+2026-05-09T09:10:17.379637Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_request: started processing request
+2026-05-09T09:10:17.379659Z DEBUG request{[3mmethod[0m[2m=[0mGET [3muri[0m[2m=[0m/api/health [3mversion[0m[2m=[0mHTTP/1.1}: tower_http::trace::on_response: finished processing request latency=0 ms status=200

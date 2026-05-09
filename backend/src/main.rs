@@ -37,7 +37,7 @@ use infrastructure::{
     },
     storage::local_file_storage::LocalFileStorage,
 };
-use presentation::routes::{health, leaderboard, photos};
+use presentation::routes::{donate, health, leaderboard, photos};
 
 /// 全局应用状态（依赖注入容器）
 pub struct AppState {
@@ -184,6 +184,7 @@ async fn main() {
         .route("/api/photos/:id/score", post(photos::score_photo))
         .route("/api/photos/:id", axum::routing::delete(photos::delete_photo))
         .route("/api/health", get(health::health_check))
+        .route("/api/donate", post(donate::create_checkout_session))
         .nest_service("/uploads", ServeDir::new("./uploads"))
         .nest_service("/thumbnails", ServeDir::new("./uploads/thumbnails"))
         .layer(cors)
