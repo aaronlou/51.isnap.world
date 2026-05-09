@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Loader2, ImageOff, X, ChevronLeft, ChevronRight, Trash2, MessageSquare, ChevronDown, ChevronUp } from 'lucide-react'
+import { Star, Loader2, ImageOff, X, ChevronLeft, ChevronRight, Trash2, MessageSquare, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import type { Photo } from '@/types/photo'
 
 interface PhotoGalleryProps {
@@ -207,6 +207,24 @@ export default function PhotoGallery({
                 <span className="text-[11px] text-cream-subtle">
                   {lightboxIndex + 1} / {photos.length}
                 </span>
+                <span className="w-px h-3 bg-ink-700" />
+                <button
+                  onClick={(e) => { e.stopPropagation(); onScore(photos[lightboxIndex].id) }}
+                  disabled={scoringId === photos[lightboxIndex].id}
+                  className="flex items-center gap-1 text-[11px] font-medium text-gold-400 hover:text-gold-300 transition-colors disabled:opacity-50"
+                >
+                  {scoringId === photos[lightboxIndex].id ? (
+                    <>
+                      <Loader2 className="w-3 h-3 animate-spin" strokeWidth={1.5} />
+                      评分中...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-3 h-3" strokeWidth={1.5} />
+                      {photos[lightboxIndex].score !== undefined ? '重新评分' : 'AI 点评'}
+                    </>
+                  )}
+                </button>
               </div>
 
               {/* Review panel */}
