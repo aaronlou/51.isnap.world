@@ -16,4 +16,20 @@ export interface ScoreResult {
   engine?: string;
 }
 
-export type Tab = 'upload' | 'gallery' | 'leaderboard';
+export interface BattleResult {
+  user_photo_id: string;
+  user_photo: Photo;
+  user_score: number;
+  user_review: string;
+  opponent_photo_url: string;
+  opponent_photo_title: string;
+  opponent_photographer: string;
+  opponent_photo_html_link: string;
+  opponent_score: number;
+  opponent_review: string;
+  winner: string;
+  comparison: string;
+  engine: string;
+}
+
+export type Tab = 'upload' | 'gallery' | 'leaderboard' | 'battle';

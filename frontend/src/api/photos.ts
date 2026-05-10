@@ -1,5 +1,5 @@
 import { apiClient } from './client';
-import type { Photo, ScoreResult } from '@/types/photo';
+import type { Photo, ScoreResult, BattleResult } from '@/types/photo';
 
 export async function fetchPhotos(): Promise<Photo[]> {
   const res = await apiClient.get<Photo[]>('/api/photos');
@@ -25,5 +25,10 @@ export async function scorePhoto(id: string): Promise<ScoreResult> {
 
 export async function deletePhoto(id: string): Promise<Photo> {
   const res = await apiClient.delete<Photo>(`/api/photos/${id}`);
+  return res.data;
+}
+
+export async function battlePhoto(id: string): Promise<BattleResult> {
+  const res = await apiClient.post<BattleResult>(`/api/photos/${id}/battle`);
   return res.data;
 }

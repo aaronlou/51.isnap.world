@@ -1,5 +1,7 @@
+pub mod battle_photo;
 pub mod delete_photo;
 pub mod get_leaderboard;
+pub mod get_random_unsplash;
 pub mod list_photos;
 pub mod score_photo;
 pub mod upload_photo;

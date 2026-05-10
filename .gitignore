@@ -43,3 +43,7 @@ __pycache__/
 .models/
 models/
 backend/scripts/.model_cache/
+
+
+.logs/
+.backend/logs/

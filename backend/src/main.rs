@@ -24,7 +24,8 @@ mod infrastructure;
 mod presentation;
 
 use application::use_cases::{
-    delete_photo::DeletePhotoUseCase, get_leaderboard::GetLeaderboardUseCase,
+    battle_photo::BattlePhotoUseCase, delete_photo::DeletePhotoUseCase,
+    get_leaderboard::GetLeaderboardUseCase, get_random_unsplash::GetRandomUnsplashUseCase,
     list_photos::ListPhotosUseCase, score_photo::ScorePhotoUseCase,
     upload_photo::UploadPhotoUseCase,
 };
@@ -33,11 +34,12 @@ use infrastructure::{
     db::sqlite::SqlitePhotoRepository,
     http::{
         artimuse_client::ArtiMuseClient, gemini_client::GeminiClient,
-        gemini_reviewer::GeminiReviewer, volcengine_client::VolcEngineClient,
+        gemini_reviewer::GeminiReviewer, unsplash_client::UnsplashClient,
+        volcengine_client::VolcEngineClient,
     },
     storage::local_file_storage::LocalFileStorage,
 };
-use presentation::routes::{donate, health, leaderboard, photos};
+use presentation::routes::{battle, donate, health, leaderboard, photos, unsplash};
 
 /// 全局应用状态（依赖注入容器）
 pub struct AppState {
@@ -46,6 +48,8 @@ pub struct AppState {
     pub list_photos: ListPhotosUseCase<SqlitePhotoRepository>,
     pub get_leaderboard: GetLeaderboardUseCase<SqlitePhotoRepository>,
     pub delete_photo: DeletePhotoUseCase<SqlitePhotoRepository, LocalFileStorage>,
+    pub battle_photo: BattlePhotoUseCase<SqlitePhotoRepository>,
+    pub random_unsplash: GetRandomUnsplashUseCase,
 }
 
 #[tokio::main]
@@ -113,6 +117,11 @@ async fn main() {
     let volcengine_url =
         std::env::var("VOLCENGINE_URL").unwrap_or_else(|_| "http://127.0.0.1:8001".to_string());
 
+    let unsplash_client_id = std::env::var("UNSPLASH_CLIENT_ID").unwrap_or_else(|_| {
+        warn!("UNSPLASH_CLIENT_ID not set; battle mode will be unavailable");
+        String::new()
+    });
+
     // 基础设施层
     let repository = SqlitePhotoRepository::new(&db_path).expect("Failed to initialize database");
 
@@ -153,16 +162,28 @@ async fn main() {
     let mut score_photo = ScorePhotoUseCase::new(repository.clone(), upload_dir.clone(), coordinator);
     if !gemini_api_key.is_empty() {
         info!("Gemini review generation enabled");
-        score_photo = score_photo.with_reviewer(Box::new(GeminiReviewer::new(gemini_api_key)));
+        score_photo = score_photo.with_reviewer(Box::new(GeminiReviewer::new(gemini_api_key.clone())));
     }
     let list_photos = ListPhotosUseCase::new(repository.clone(), base_url.clone());
     let get_leaderboard = GetLeaderboardUseCase::new(repository.clone(), base_url.clone());
     let delete_photo = DeletePhotoUseCase::new(
-        repository,
+        repository.clone(),
         file_storage,
         upload_dir.clone(),
+        base_url.clone(),
+    );
+
+    let unsplash_client = UnsplashClient::new(unsplash_client_id);
+
+    let battle_photo = BattlePhotoUseCase::new(
+        repository,
+        upload_dir.clone(),
+        unsplash_client.clone(),
+        gemini_api_key,
         base_url,
     );
+
+    let random_unsplash = GetRandomUnsplashUseCase::new(unsplash_client);
 
     let state = Arc::new(AppState {
         upload_photo,
@@ -170,6 +191,8 @@ async fn main() {
         list_photos,
         get_leaderboard,
         delete_photo,
+        battle_photo,
+        random_unsplash,
     });
 
     let cors = CorsLayer::new()
@@ -183,6 +206,8 @@ async fn main() {
         .route("/api/leaderboard", get(leaderboard::get_leaderboard))
         .route("/api/photos/:id/score", post(photos::score_photo))
         .route("/api/photos/:id", axum::routing::delete(photos::delete_photo))
+        .route("/api/photos/:id/battle", post(battle::battle_photo))
+        .route("/api/unsplash/random", get(unsplash::random_unsplash_photo))
         .route("/api/health", get(health::health_check))
         .route("/api/donate", post(donate::create_checkout_session))
         .nest_service("/uploads", ServeDir::new("./uploads"))

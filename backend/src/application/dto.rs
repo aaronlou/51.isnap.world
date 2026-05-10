@@ -40,3 +40,21 @@ pub struct ScoreResultDto {
     pub review: String,
     pub engine: Option<String>,
 }
+
+/// 对决结果 DTO
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct BattleResultDto {
+    pub user_photo_id: String,
+    pub user_photo: PhotoDto,
+    pub user_score: f32,
+    pub user_review: String,
+    pub opponent_photo_url: String,
+    pub opponent_photo_title: String,
+    pub opponent_photographer: String,
+    pub opponent_photo_html_link: String,
+    pub opponent_score: f32,
+    pub opponent_review: String,
+    pub winner: String,
+    pub comparison: String,
+    pub engine: String,
+}

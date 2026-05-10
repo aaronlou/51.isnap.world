@@ -1,19 +1,23 @@
 import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Grid3X3, BarChart3, Sparkles, Brain, Image as ImageIcon, Heart } from 'lucide-react'
+import { Camera, Grid3X3, BarChart3, Swords, Sparkles, Brain, Image as ImageIcon, Heart } from 'lucide-react'
 import UploadZone from '@/components/UploadZone'
 import ScoreReveal from '@/components/ScoreReveal'
 import Leaderboard from '@/components/Leaderboard'
 import PhotoGallery from '@/components/PhotoGallery'
+import BattleArena from '@/components/BattleArena'
+import BattleReveal from '@/components/BattleReveal'
 import DonateModal from '@/components/DonateModal'
 import { usePhotos } from '@/hooks/usePhotos'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
+import { useBattle } from '@/hooks/useBattle'
 import type { Tab } from '@/types/photo'
 
 const tabs: { id: Tab; label: string; icon: typeof Camera }[] = [
   { id: 'upload', label: '上传', icon: Camera },
   { id: 'gallery', label: '画廊', icon: Grid3X3 },
   { id: 'leaderboard', label: '排行榜', icon: BarChart3 },
+  { id: 'battle', label: '1 V 1 挑战', icon: Swords },
 ]
 
 export default function App() {
@@ -35,6 +39,8 @@ export default function App() {
   } = usePhotos()
 
   const { leaderboard, isLoading: isLoadingLeaderboard, loadLeaderboard } = useLeaderboard()
+
+  const { battleResult, isBattling, battlingId, handleBattle, clearBattle } = useBattle()
 
   // 切换到 gallery 时才加载照片数据
   useEffect(() => {
@@ -74,6 +80,13 @@ export default function App() {
       loadLeaderboard()
     }
   }, [scoreResult, loadLeaderboard])
+
+  // Reload photos when battle tab is active and photos are stale
+  useEffect(() => {
+    if (activeTab === 'battle' && photos.length === 0) {
+      loadPhotos()
+    }
+  }, [activeTab, photos.length, loadPhotos])
 
   // When leaderboard updates after scoring, compute rank
   useEffect(() => {
@@ -137,6 +150,7 @@ export default function App() {
               return (
                 <button
                   key={tab.id}
+                  data-tab={tab.id}
                   onClick={() => setActiveTab(tab.id)}
                   className={`
                     flex items-center gap-2 px-5 py-3 text-sm font-medium transition-all duration-300 relative
@@ -201,6 +215,25 @@ export default function App() {
               transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
             >
               <Leaderboard photos={leaderboard} isLoading={isLoadingLeaderboard} />
+            </motion.div>
+          )}
+
+          {activeTab === 'battle' && (
+            <motion.div
+              key="battle"
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -12 }}
+              transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
+            >
+              <BattleArena
+                photos={photos}
+                isLoading={isLoadingPhotos}
+                onLoadPhotos={loadPhotos}
+                onBattle={handleBattle}
+                isBattling={isBattling}
+                battlingId={battlingId}
+              />
             </motion.div>
           )}
         </AnimatePresence>
@@ -294,6 +327,16 @@ export default function App() {
               handleCloseScore()
               setActiveTab('leaderboard')
             }}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Battle Reveal Modal */}
+      <AnimatePresence>
+        {battleResult && (
+          <BattleReveal
+            result={battleResult}
+            onClose={clearBattle}
           />
         )}
       </AnimatePresence>
