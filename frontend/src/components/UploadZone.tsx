@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Upload, Image, AlertCircle, Loader2 } from 'lucide-react'
+import { useLocale } from '@/i18n/LocaleContext'
 
 interface UploadZoneProps {
   onUpload: (file: File) => Promise<void>
@@ -8,16 +9,17 @@ interface UploadZoneProps {
 }
 
 export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
+  const { t } = useLocale()
   const [isDragOver, setIsDragOver] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const validateFile = (file: File): string | null => {
     if (file.type !== 'image/jpeg') {
-      return '仅支持 JPEG 格式'
+      return t('upload.errorFormat')
     }
     if (file.size > 30 * 1024 * 1024) {
-      return '文件大小超过 30MB 限制'
+      return t('upload.errorSize')
     }
     return null
   }
@@ -71,12 +73,12 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
         transition={{ duration: 0.6, ease: [0.25, 0.1, 0.25, 1] }}
         className="text-center mb-16"
       >
-        <p className="label mb-6">AI 摄影评分</p>
+        <p className="label mb-6">{t('upload.heroLabel')}</p>
         <h2 className="heading-display text-5xl md:text-6xl text-cream mb-5 text-balance">
-          挑战 AI 评审团
+          {t('upload.heroTitle')}
         </h2>
         <p className="text-cream-muted text-sm md:text-base max-w-md mx-auto leading-relaxed">
-          上传你的摄影作品，获得 AI 在构图、光线、色彩等多维度的专业点评与评分。
+          {t('upload.heroDesc')}
         </p>
       </motion.div>
 
@@ -122,8 +124,8 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
               >
                 <Loader2 className="w-8 h-8 text-gold-400 animate-spin" strokeWidth={1.5} />
                 <div>
-                  <p className="text-cream text-sm font-medium mb-2">正在分析你的作品...</p>
-                  <p className="text-cream-subtle text-xs">两个 AI 模型正在审议，请稍候</p>
+                  <p className="text-cream text-sm font-medium mb-2">{t('upload.uploading')}</p>
+                  <p className="text-cream-subtle text-xs">{t('upload.uploadingSub')}</p>
                 </div>
               </motion.div>
             ) : (
@@ -140,10 +142,10 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
                   <Upload className="w-6 h-6 text-cream-muted" strokeWidth={1.5} />
                 </div>
                 <p className="text-cream text-base font-medium mb-1.5">
-                  拖拽或点击上传
+                  {t('upload.dropLabel')}
                 </p>
                 <p className="text-cream-subtle text-xs">
-                  JPEG 格式 · 最大 30MB
+                  {t('upload.formatHint')}
                 </p>
               </>
             )}
@@ -175,12 +177,12 @@ export default function UploadZone({ onUpload, isUploading }: UploadZoneProps) {
       >
         <div className="flex items-center gap-2 text-xs text-cream-subtle">
           <span className="w-1.5 h-1.5 rounded-full bg-gold-400/60" />
-          <span>Gemini AI</span>
+          <span>{t('upload.judgeGemini')}</span>
         </div>
         <div className="w-px h-3 bg-ink-700" />
         <div className="flex items-center gap-2 text-xs text-cream-subtle">
           <span className="w-1.5 h-1.5 rounded-full bg-cream-muted/40" />
-          <span>VolcEngine 美学</span>
+          <span>{t('upload.judgeVolc')}</span>
         </div>
       </motion.div>
     </div>

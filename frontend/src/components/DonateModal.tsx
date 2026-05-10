@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Heart, Loader2 } from 'lucide-react';
 import { createCheckoutSession } from '@/api/donate';
+import { useLocale } from '@/i18n/LocaleContext';
 
 type Currency = 'gbp' | 'usd';
 
@@ -33,7 +34,6 @@ const SYMBOL: Record<Currency, string> = {
 function detectCurrency(): Currency {
   try {
     const lang = navigator.language || 'en-GB';
-    // 美国、加拿大、澳洲等用 USD，其余默认 GBP
     if (lang.startsWith('en-US') || lang.startsWith('en-CA') || lang.startsWith('en-AU')) {
       return 'usd';
     }
@@ -44,13 +44,13 @@ function detectCurrency(): Currency {
 }
 
 export default function DonateModal({ isOpen, onClose }: DonateModalProps) {
+  const { t } = useLocale();
   const [currency, setCurrency] = useState<Currency>(detectCurrency());
   const [selectedAmount, setSelectedAmount] = useState<number | null>(500);
   const [customAmount, setCustomAmount] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // 切换货币时重置选择
   const handleCurrencyChange = (c: Currency) => {
     setCurrency(c);
     setSelectedAmount(500);
@@ -85,7 +85,7 @@ export default function DonateModal({ isOpen, onClose }: DonateModalProps) {
   const handleDonate = async () => {
     const amount = getAmountInCents();
     if (amount < 50) {
-      setError(`最低支持 ${SYMBOL[currency]}0.50`);
+      setError(`${t('donate.errorMin')} ${SYMBOL[currency]}0.50`);
       return;
     }
 
@@ -95,12 +95,11 @@ export default function DonateModal({ isOpen, onClose }: DonateModalProps) {
       const { url } = await createCheckoutSession(amount, currency);
       window.location.href = url;
     } catch (err: any) {
-      setError(err.response?.data?.error || '创建支付会话失败，请稍后重试');
+      setError(err.response?.data?.error || t('donate.errorCreate'));
       setIsLoading(false);
     }
   };
 
-  // 打开时根据当前浏览器语言重新检测货币
   useEffect(() => {
     if (isOpen) {
       setCurrency(detectCurrency());
@@ -139,9 +138,9 @@ export default function DonateModal({ isOpen, onClose }: DonateModalProps) {
                 <div className="w-12 h-12 rounded-full bg-gold-400/10 border border-gold-400/20 flex items-center justify-center mx-auto mb-4">
                   <Heart className="w-5 h-5 text-gold-400" strokeWidth={1.5} />
                 </div>
-                <h3 className="heading-display text-2xl text-cream mb-2">支持我们</h3>
+                <h3 className="heading-display text-2xl text-cream mb-2">{t('donate.title')}</h3>
                 <p className="text-xs text-cream-subtle">
-                  您的支持将帮助我们持续改进产品体验
+                  {t('donate.subtitle')}
                 </p>
               </div>
 
@@ -195,7 +194,7 @@ export default function DonateModal({ isOpen, onClose }: DonateModalProps) {
                   type="text"
                   value={customAmount}
                   onChange={handleCustomChange}
-                  placeholder="自定义金额"
+                  placeholder={t('donate.custom')}
                   className="w-full bg-ink-800/60 border border-ink-700/40 rounded-xl py-2.5 pl-8 pr-4 text-sm text-cream placeholder:text-cream-subtle/50 focus:outline-none focus:border-gold-400/40 transition-colors"
                 />
               </div>
@@ -214,18 +213,18 @@ export default function DonateModal({ isOpen, onClose }: DonateModalProps) {
                 {isLoading ? (
                   <>
                     <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
-                    跳转中...
+                    {t('donate.redirecting')}
                   </>
                 ) : (
                   <>
                     <Heart className="w-4 h-4" strokeWidth={1.5} />
-                    确认支持 {SYMBOL[currency]}{(getAmountInCents() / 100).toFixed(2)}
+                    {t('donate.confirm')} {SYMBOL[currency]}{(getAmountInCents() / 100).toFixed(2)}
                   </>
                 )}
               </button>
 
               <p className="text-[10px] text-cream-subtle/50 text-center mt-4">
-                由 Stripe 提供安全支付保障 · 支持 Visa / Mastercard / 支付宝
+                {t('donate.footer')}
               </p>
             </div>
           </motion.div>

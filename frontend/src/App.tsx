@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Camera, Grid3X3, BarChart3, Swords, Sparkles, Brain, Image as ImageIcon, Heart } from 'lucide-react'
 import UploadZone from '@/components/UploadZone'
@@ -8,19 +8,15 @@ import PhotoGallery from '@/components/PhotoGallery'
 import BattleArena from '@/components/BattleArena'
 import BattleReveal from '@/components/BattleReveal'
 import DonateModal from '@/components/DonateModal'
+import LanguageSwitch from '@/components/LanguageSwitch'
 import { usePhotos } from '@/hooks/usePhotos'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { useBattle } from '@/hooks/useBattle'
+import { useLocale } from '@/i18n/LocaleContext'
 import type { Tab } from '@/types/photo'
 
-const tabs: { id: Tab; label: string; icon: typeof Camera }[] = [
-  { id: 'upload', label: '上传', icon: Camera },
-  { id: 'gallery', label: '画廊', icon: Grid3X3 },
-  { id: 'leaderboard', label: '排行榜', icon: BarChart3 },
-  { id: 'battle', label: '1 V 1 挑战', icon: Swords },
-]
-
 export default function App() {
+  const { t } = useLocale()
   const [activeTab, setActiveTab] = useState<Tab>('upload')
   const [scoredRank, setScoredRank] = useState<number | null>(null)
   const [showDonate, setShowDonate] = useState(false)
@@ -42,6 +38,13 @@ export default function App() {
 
   const { battleResult, isBattling, battlingId, handleBattle, clearBattle } = useBattle()
 
+  const tabs = useMemo(() => [
+    { id: 'upload' as Tab, label: t('tab.upload'), icon: Camera },
+    { id: 'gallery' as Tab, label: t('tab.gallery'), icon: Grid3X3 },
+    { id: 'leaderboard' as Tab, label: t('tab.leaderboard'), icon: BarChart3 },
+    { id: 'battle' as Tab, label: t('tab.battle'), icon: Swords },
+  ], [t])
+
   // 切换到 gallery 时才加载照片数据
   useEffect(() => {
     if (activeTab === 'gallery' && photos.length === 0) {
@@ -61,18 +64,18 @@ export default function App() {
     const params = new URLSearchParams(window.location.search)
     const donateStatus = params.get('donate')
     if (donateStatus === 'success') {
-      setDonateNotice('感谢您的支持！❤️')
+      setDonateNotice(t('app.donateSuccess'))
       window.history.replaceState({}, '', window.location.pathname)
       const timer = setTimeout(() => setDonateNotice(null), 4000)
       return () => clearTimeout(timer)
     }
     if (donateStatus === 'cancel') {
-      setDonateNotice('支付已取消，期待您的下次支持')
+      setDonateNotice(t('app.donateCancel'))
       window.history.replaceState({}, '', window.location.pathname)
       const timer = setTimeout(() => setDonateNotice(null), 4000)
       return () => clearTimeout(timer)
     }
-  }, [])
+  }, [t])
 
   // When score result appears, reload leaderboard and compute rank
   useEffect(() => {
@@ -118,23 +121,24 @@ export default function App() {
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <span className="heading-display text-2xl text-cream tracking-tight">
-              摄影大乱斗
+              {t('app.title')}
             </span>
             <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-gold-400 bg-gold-400/8 px-2 py-0.5 rounded-full">
-              竞技场
+              {t('app.badge')}
             </span>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSwitch />
             <button
               onClick={() => setShowDonate(true)}
               className="flex items-center gap-1.5 text-xs text-cream-muted hover:text-gold-400 transition-colors"
             >
               <Heart className="w-3.5 h-3.5" strokeWidth={1.5} />
-              <span>打赏</span>
+              <span>{t('app.donate')}</span>
             </button>
             <div className="hidden sm:flex items-center gap-2 text-xs text-cream-muted">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
-              <span>{scoredCount} 张已评分</span>
+              <span>{scoredCount} {t('app.scoredCount')}</span>
             </div>
           </div>
         </div>
@@ -270,8 +274,8 @@ export default function App() {
                     <Brain className="w-8 h-8 text-cyan-400" strokeWidth={1.5} />
                   </motion.div>
                 </div>
-                <h3 className="text-lg font-medium text-cream mb-2">AI 评审中</h3>
-                <p className="text-sm text-cream-muted">两个 AI 模型正在紧张讨论中...</p>
+                <h3 className="text-lg font-medium text-cream mb-2">{t('app.scoring.title')}</h3>
+                <p className="text-sm text-cream-muted">{t('app.scoring.subtitle')}</p>
               </div>
 
               <div className="space-y-3">
@@ -283,7 +287,7 @@ export default function App() {
                   />
                   <div className="flex-1">
                     <p className="text-xs font-medium text-cream">VolcEngine</p>
-                    <p className="text-[10px] text-cream-subtle">正在分析美学与构图...</p>
+                    <p className="text-[10px] text-cream-subtle">{t('app.scoring.volcengine')}</p>
                   </div>
                 </div>
 
@@ -295,7 +299,7 @@ export default function App() {
                   />
                   <div className="flex-1">
                     <p className="text-xs font-medium text-cream">Gemini</p>
-                    <p className="text-[10px] text-cream-subtle">正在进行专业摄影点评...</p>
+                    <p className="text-[10px] text-cream-subtle">{t('app.scoring.gemini')}</p>
                   </div>
                 </div>
               </div>
@@ -306,7 +310,7 @@ export default function App() {
                   transition={{ duration: 2, repeat: Infinity }}
                   className="text-[11px] text-cream-subtle"
                 >
-                  审议中...
+                  {t('app.scoring.waiting')}
                 </motion.div>
               </div>
             </motion.div>
@@ -364,10 +368,10 @@ export default function App() {
       <footer className="fixed bottom-0 left-0 right-0 z-30 bg-ink-950/60 backdrop-blur-md border-t border-ink-800/20">
         <div className="max-w-5xl mx-auto px-6 py-3 flex items-center justify-between">
           <p className="text-[11px] text-cream-subtle tracking-wide">
-            摄影大乱斗 · AI 摄影评分
+            {t('app.footer')}
           </p>
           <p className="text-[11px] text-cream-subtle">
-            {photos.length} 张照片 · {scoredCount} 张已评分
+            {photos.length} {t('app.footerCount')} · {scoredCount} {t('app.scoredCount')}
           </p>
         </div>
       </footer>

@@ -1,19 +1,22 @@
 import { motion } from 'framer-motion'
-import { Star, Loader2, Trophy, Crown, Medal, Swords, Sparkles } from 'lucide-react'
+import { Star, Loader2, Trophy, Crown, Medal, Swords } from 'lucide-react'
 import type { Photo } from '@/types/photo'
+import { useLocale } from '@/i18n/LocaleContext'
 
 interface LeaderboardProps {
   photos: Photo[]
   isLoading: boolean
 }
 
-const rankConfig = [
-  { icon: Crown, label: '冠军', color: 'text-gold-400', border: 'border-gold-400/30', glow: 'shadow-gold-400/10' },
-  { icon: Trophy, label: '亚军', color: 'text-slate-300', border: 'border-slate-400/20', glow: '' },
-  { icon: Medal, label: '季军', color: 'text-amber-600', border: 'border-amber-600/20', glow: '' },
-]
-
 export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
+  const { t } = useLocale()
+
+  const rankConfig = [
+    { icon: Crown, label: t('leaderboard.champion'), color: 'text-gold-400', border: 'border-gold-400/30', glow: 'shadow-gold-400/10' },
+    { icon: Trophy, label: t('leaderboard.runnerUp'), color: 'text-slate-300', border: 'border-slate-400/20', glow: '' },
+    { icon: Medal, label: t('leaderboard.thirdPlace'), color: 'text-amber-600', border: 'border-amber-600/20', glow: '' },
+  ]
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -28,8 +31,8 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
         <div className="w-12 h-12 rounded-full bg-ink-900 border border-ink-800 flex items-center justify-center mx-auto mb-5">
           <Swords className="w-5 h-5 text-cream-subtle" strokeWidth={1.5} />
         </div>
-        <p className="text-cream-muted text-sm">竞技场虚位以待</p>
-        <p className="text-cream-subtle text-xs mt-1">上传你的作品，让 AI 评审，冲击排行榜</p>
+        <p className="text-cream-muted text-sm">{t('leaderboard.empty')}</p>
+        <p className="text-cream-subtle text-xs mt-1">{t('leaderboard.emptySub')}</p>
       </div>
     )
   }
@@ -40,13 +43,13 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
       <div className="text-center mb-12">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Swords className="w-4 h-4 text-gold-400" strokeWidth={1.5} />
-          <p className="label">竞技场</p>
+          <p className="label">{t('tab.battle')}</p>
         </div>
         <h2 className="heading-display text-4xl md:text-5xl text-cream mb-3">
-          荣耀殿堂
+          {t('leaderboard.title')}
         </h2>
         <p className="text-cream-muted text-sm">
-          {photos.length} 位挑战者为王座而战
+          {photos.length} {t('leaderboard.subtitle')}
         </p>
       </div>
 
@@ -105,7 +108,7 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
                     <p className="text-sm text-cream font-medium truncate">{photo.filename}</p>
                   </div>
                   <p className="text-[10px] text-cream-subtle">
-                    {isFirst ? '卫冕冠军' : index === 1 ? '银牌挑战者' : '铜牌竞争者'}
+                    {isFirst ? t('leaderboard.defendingChamp') : index === 1 ? t('leaderboard.silverChallenger') : t('leaderboard.bronzeChallenger')}
                   </p>
                 </div>
               </motion.div>
@@ -120,7 +123,7 @@ export default function Leaderboard({ photos, isLoading }: LeaderboardProps) {
           <div className="flex items-center gap-2 mb-4">
             <Swords className="w-3.5 h-3.5 text-cream-subtle" strokeWidth={1.5} />
             <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
-              挑战者 ({photos.length - 3} 位)
+              {t('leaderboard.challengerCount')} ({photos.length - 3})
             </span>
           </div>
           {photos.slice(3).map((photo, index) => (

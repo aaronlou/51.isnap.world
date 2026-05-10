@@ -15,6 +15,7 @@ import {
 import type { Photo, BattleOpponent } from '@/types/photo'
 import type { UnsplashPhoto } from '@/types/unsplash'
 import { fetchRandomUnsplash } from '@/api/unsplash'
+import { useLocale } from '@/i18n/LocaleContext'
 
 interface BattleArenaProps {
   photos: Photo[]
@@ -51,6 +52,7 @@ export default function BattleArena({
   onUpload,
   isUploading,
 }: BattleArenaProps) {
+  const { t } = useLocale()
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [opponent, setOpponent] = useState<UnsplashPhoto | null>(null)
   const [changesLeft, setChangesLeftState] = useState(getChangesLeft)
@@ -70,11 +72,11 @@ export default function BattleArena({
       setOpponent(photo)
     } catch (err: any) {
       console.error('Failed to load opponent:', err)
-      setOpponentError('加载对手失败，请重试')
+      setOpponentError(t('battle.loadError'))
     } finally {
       setIsLoadingOpponent(false)
     }
-  }, [])
+  }, [t])
 
   // 组件挂载时，如果无对手则自动加载
   useEffect(() => {
@@ -110,10 +112,10 @@ export default function BattleArena({
 
   const validateFile = (file: File): string | null => {
     if (file.type !== 'image/jpeg') {
-      return '仅支持 JPEG 格式'
+      return t('battle.errorFormat')
     }
     if (file.size > 30 * 1024 * 1024) {
-      return '文件大小超过 30MB 限制'
+      return t('battle.errorSize')
     }
     return null
   }
@@ -178,13 +180,13 @@ export default function BattleArena({
       <div className="text-center mb-8">
         <div className="flex items-center justify-center gap-2 mb-3">
           <Swords className="w-4 h-4 text-gold-400" strokeWidth={1.5} />
-          <p className="label">摄影大乱斗</p>
+          <p className="label">{t('battle.header')}</p>
         </div>
         <h2 className="heading-display text-4xl md:text-5xl text-cream mb-3">
-          挑战随机大师
+          {t('battle.title')}
         </h2>
         <p className="text-cream-muted text-sm max-w-md mx-auto">
-          选择你的作品，与 Unsplash 专业摄影师一决高下
+          {t('battle.subtitle')}
         </p>
       </div>
 
@@ -195,7 +197,7 @@ export default function BattleArena({
           <div className="flex items-center gap-2 mb-3">
             <div className="w-1.5 h-1.5 rounded-full bg-gold-400" />
             <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
-              你的作品
+              {t('battle.yourPhoto')}
             </span>
             {photos.length > 0 && (
               <span className="text-[10px] text-cream-subtle ml-auto">
@@ -229,8 +231,8 @@ export default function BattleArena({
                   >
                     <Loader2 className="w-8 h-8 text-gold-400 animate-spin" strokeWidth={1.5} />
                     <div>
-                      <p className="text-cream text-sm font-medium">正在上传...</p>
-                      <p className="text-cream-subtle text-xs mt-1">上传完成后将自动评分</p>
+                      <p className="text-cream text-sm font-medium">{t('battle.uploading')}</p>
+                      <p className="text-cream-subtle text-xs mt-1">{t('battle.uploadingSub')}</p>
                     </div>
                   </motion.div>
                 ) : (
@@ -238,8 +240,8 @@ export default function BattleArena({
                     <div className="w-14 h-14 rounded-full border border-ink-700 bg-ink-800/50 flex items-center justify-center mb-4">
                       <Upload className="w-6 h-6 text-cream-muted" strokeWidth={1.5} />
                     </div>
-                    <p className="text-cream text-sm font-medium mb-1">点击或拖拽上传</p>
-                    <p className="text-cream-subtle text-xs">JPEG 格式 · 最大 30MB</p>
+                    <p className="text-cream text-sm font-medium mb-1">{t('battle.dropLabel')}</p>
+                    <p className="text-cream-subtle text-xs">{t('battle.formatHint')}</p>
                   </>
                 )}
               </div>
@@ -293,7 +295,7 @@ export default function BattleArena({
                     className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-ink-950/70 backdrop-blur-sm rounded-full px-3 py-1.5 text-[10px] text-cream-muted hover:text-gold-400 transition-colors disabled:opacity-40"
                   >
                     <Upload className="w-3 h-3" strokeWidth={1.5} />
-                    上传新作品
+                    {t('battle.uploadNew')}
                   </button>
                   <input
                     ref={fileInputRef}
@@ -326,11 +328,11 @@ export default function BattleArena({
           <div className="flex items-center gap-2 mb-3">
             <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
             <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
-              随机对手
+              {t('battle.opponent')}
             </span>
             <span className="text-[10px] text-cream-subtle ml-auto flex items-center gap-1">
               <Shield className="w-3 h-3" strokeWidth={1.5} />
-              剩余 {changesLeft} 次更换
+              {t('battle.changesLeft')} {changesLeft}
             </span>
           </div>
 
@@ -356,19 +358,19 @@ export default function BattleArena({
                     rel="noopener noreferrer"
                     className="text-[11px] text-cream-subtle hover:text-gold-400 transition-colors mt-1 inline-block"
                   >
-                    摄影：{opponent.photographer} · Unsplash
+                    {t('battle.photographer')}{opponent.photographer} · Unsplash
                   </a>
                 </div>
               </>
             ) : (
               <div className="aspect-[4/3] flex flex-col items-center justify-center text-center p-6">
                 <ImageOff className="w-8 h-8 text-cream-subtle mb-3" strokeWidth={1.5} />
-                <p className="text-sm text-cream-muted mb-2">尚未选择对手</p>
+                <p className="text-sm text-cream-muted mb-2">{t('battle.noOpponent')}</p>
                 <button
                   onClick={loadOpponent}
                   className="text-xs text-gold-400 hover:text-gold-300 transition-colors"
                 >
-                  加载对手
+                  {t('battle.loadOpponent')}
                 </button>
               </div>
             )}
@@ -381,7 +383,7 @@ export default function BattleArena({
                 className="absolute top-3 right-3 flex items-center gap-1.5 bg-ink-950/70 backdrop-blur-sm rounded-full px-3 py-1.5 text-[10px] text-cream-muted hover:text-gold-400 transition-colors disabled:opacity-40 disabled:hover:text-cream-muted"
               >
                 <RefreshCw className={`w-3 h-3 ${isLoadingOpponent ? 'animate-spin' : ''}`} strokeWidth={1.5} />
-                {changesLeft <= 0 ? '次数已用完' : '更换对手'}
+                {changesLeft <= 0 ? t('battle.noChanges') : t('battle.changeOpponent')}
               </button>
             )}
           </div>
@@ -416,21 +418,21 @@ export default function BattleArena({
           {isBattling ? (
             <>
               <Loader2 className="w-4 h-4 animate-spin" strokeWidth={1.5} />
-              AI 评审中...
+              {t('battle.battling')}
             </>
           ) : (
             <>
               <Swords className="w-4 h-4" strokeWidth={1.5} />
-              发起挑战
+              {t('battle.battleBtn')}
             </>
           )}
         </button>
         {!canBattle && !isBattling && (
           <p className="text-[11px] text-cream-subtle mt-2">
             {!selectedPhoto
-              ? '请先上传一张照片'
+              ? t('battle.noPhoto')
               : !opponent
-              ? '正在加载对手...'
+              ? t('battle.loadingOpponent')
               : ''}
           </p>
         )}

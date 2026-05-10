@@ -1,3 +1,5 @@
 2026-05-09T08:57:04.545324Z ERROR tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms
 2026-05-09T09:00:01.931427Z ERROR tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms
 2026-05-09T09:03:38.246630Z ERROR tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms
+2026-05-09T09:37:44.438666Z ERROR tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms
+2026-05-09T10:27:31.392245Z ERROR tower_http::trace::on_failure: response failed classification=Status code: 502 Bad Gateway latency=0 ms

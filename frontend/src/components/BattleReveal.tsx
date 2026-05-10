@@ -11,6 +11,7 @@ import {
   Sparkles,
 } from 'lucide-react'
 import type { BattleResult } from '@/types/photo'
+import { useLocale } from '@/i18n/LocaleContext'
 
 interface BattleRevealProps {
   result: BattleResult | null
@@ -18,6 +19,7 @@ interface BattleRevealProps {
 }
 
 export default function BattleReveal({ result, onClose }: BattleRevealProps) {
+  const { t } = useLocale()
   const [displayUserScore, setDisplayUserScore] = useState(0)
   const [displayOpponentScore, setDisplayOpponentScore] = useState(0)
   const [phase, setPhase] = useState<'counting' | 'revealed'>('counting')
@@ -70,19 +72,19 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
   const isDraw = winner === 'draw'
 
   const winnerText = useMemo(() => {
-    if (isUserWin) return { label: '你赢了！', sub: '你的作品在这场对决中更胜一筹' }
-    if (isOpponentWin) return { label: '挑战失败', sub: '专业摄影师展现了更强的实力' }
-    return { label: '势均力敌', sub: '双方作品难分伯仲' }
-  }, [isUserWin, isOpponentWin])
+    if (isUserWin) return { label: t('battleReveal.win'), sub: t('battleReveal.winSub') }
+    if (isOpponentWin) return { label: t('battleReveal.lose'), sub: t('battleReveal.loseSub') }
+    return { label: t('battleReveal.draw'), sub: t('battleReveal.drawSub') }
+  }, [isUserWin, isOpponentWin, t])
 
   const userTier = useMemo(() => {
-    if (userScore >= 4.5) return '传奇之作'
-    if (userScore >= 4.0) return '大师之作'
-    if (userScore >= 3.5) return '出类拔萃'
-    if (userScore >= 3.0) return '潜力新星'
-    if (userScore >= 2.0) return '进阶之路'
-    return '初入江湖'
-  }, [userScore])
+    if (userScore >= 4.5) return t('score.legendary')
+    if (userScore >= 4.0) return t('score.master')
+    if (userScore >= 3.5) return t('score.outstanding')
+    if (userScore >= 3.0) return t('score.risingStar')
+    if (userScore >= 2.0) return t('score.advancing')
+    return t('score.freshman')
+  }, [userScore, t])
 
   if (!result) return null
 
@@ -117,7 +119,7 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
                 <div className="flex items-center gap-2 mb-6">
                   <Swords className="w-3.5 h-3.5 text-gold-400" strokeWidth={1.5} />
                   <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
-                    对决结果
+                    {t('battleReveal.title')}
                   </span>
                   <span className="text-cream-subtle mx-1">·</span>
                   <Sparkles className="w-3 h-3 text-cream-subtle" strokeWidth={1.5} />
@@ -138,7 +140,7 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
                       />
                     </div>
                     <div className="absolute top-2 left-2 bg-ink-950/80 backdrop-blur-sm rounded-full px-2.5 py-1">
-                      <span className="text-[10px] font-medium text-cream">你的作品</span>
+                      <span className="text-[10px] font-medium text-cream">{t('battleReveal.yourLabel')}</span>
                     </div>
                     {phase === 'revealed' && isUserWin && (
                       <motion.div
@@ -260,7 +262,7 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
                           className="space-y-0.5"
                         >
                           <span className="text-[10px] font-medium tracking-[0.1em] uppercase text-cyan-400">
-                            专业作品
+                            {t('battleReveal.opponentLabel')}
                           </span>
                         </motion.div>
                       )}
@@ -309,7 +311,7 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
                         <div className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-gold-400" />
                           <span className="text-xs font-medium text-cream-muted">
-                            你的作品点评
+                            {t('battleReveal.yourReview')}
                           </span>
                         </div>
                         {showUserReview ? (
@@ -354,7 +356,7 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
                         <div className="flex items-center gap-2">
                           <div className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
                           <span className="text-xs font-medium text-cream-muted">
-                            对手作品点评
+                            {t('battleReveal.opponentReview')}
                           </span>
                         </div>
                         {showOpponentReview ? (
@@ -399,7 +401,7 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
                         <div className="flex items-center gap-2">
                           <Swords className="w-3 h-3 text-gold-400" strokeWidth={1.5} />
                           <span className="text-xs font-medium text-cream-muted">
-                            综合对比分析
+                            {t('battleReveal.comparison')}
                           </span>
                         </div>
                         {showComparison ? (
@@ -445,8 +447,8 @@ export default function BattleReveal({ result, onClose }: BattleRevealProps) {
                         className="flex items-center justify-center gap-1.5 text-[10px] text-cream-subtle hover:text-gold-400 transition-colors"
                       >
                         <span>
-                          对手作品：{result.opponent_photo_title} — 摄影：
-                          {result.opponent_photographer}，来自 Unsplash
+                          {t('battleReveal.attribution')}{result.opponent_photo_title} — {t('battleReveal.photographerBy')}
+                          {result.opponent_photographer}，{t('battleReveal.fromUnsplash')}
                         </span>
                         <ExternalLink className="w-3 h-3" strokeWidth={1.5} />
                       </a>

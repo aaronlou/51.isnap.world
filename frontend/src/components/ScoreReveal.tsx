@@ -1,6 +1,8 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { X, Star, Quote, ChevronDown, ChevronUp, Sparkles, Crown, Trophy, Swords, ArrowUp } from 'lucide-react'
+import { useLocale } from '@/i18n/LocaleContext'
+import type { TranslationKey } from '@/i18n/locales'
 
 interface ScoreRevealProps {
   score: number
@@ -72,6 +74,7 @@ export default function ScoreReveal({
   onClose,
   onViewLeaderboard,
 }: ScoreRevealProps) {
+  const { t } = useLocale()
   const [displayScore, setDisplayScore] = useState(0)
   const [phase, setPhase] = useState<'counting' | 'revealed'>('counting')
   const [showAttributes, setShowAttributes] = useState(false)
@@ -95,14 +98,21 @@ export default function ScoreReveal({
   }, [score])
 
   const isPodium = rank !== null && rank !== undefined && rank <= 3
+
   const rankLabel = useMemo(() => {
-    if (score >= 4.5) return { label: '传奇之作', sub: '堪称传世经典的摄影杰作' }
-    if (score >= 4.0) return { label: '大师之作', sub: '出色的摄影功底和艺术表现力' }
-    if (score >= 3.5) return { label: '出类拔萃', sub: '在竞技场中极具竞争力的作品' }
-    if (score >= 3.0) return { label: '潜力新星', sub: '展现出了不俗的摄影天赋' }
-    if (score >= 2.0) return { label: '进阶之路', sub: '正在磨练你的摄影眼' }
-    return { label: '初入江湖', sub: '多看看大师作品，继续加油' }
-  }, [score])
+    let key: TranslationKey
+    if (score >= 4.5) key = 'score.legendary'
+    else if (score >= 4.0) key = 'score.master'
+    else if (score >= 3.5) key = 'score.outstanding'
+    else if (score >= 3.0) key = 'score.risingStar'
+    else if (score >= 2.0) key = 'score.advancing'
+    else key = 'score.freshman'
+
+    const label = t(key as TranslationKey)
+    const subKey = `${key}Sub` as TranslationKey
+    const sub = t(subKey)
+    return { label, sub }
+  }, [score, t])
 
   const parseAttributes = (reviewText: string): { title: string; content: string }[] => {
     const attributes: { title: string; content: string }[] = []
@@ -152,7 +162,7 @@ export default function ScoreReveal({
             <div className="flex items-center gap-2 mb-6">
               <Swords className="w-3.5 h-3.5 text-gold-400" strokeWidth={1.5} />
               <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
-                评审结果
+                {t('score.title')}
               </span>
               <span className="text-cream-subtle mx-1">·</span>
               <Sparkles className="w-3 h-3 text-cream-subtle" strokeWidth={1.5} />
@@ -235,13 +245,13 @@ export default function ScoreReveal({
                       </div>
                       <p className="text-sm font-medium text-cream">
                         {rank === 1
-                          ? '🏆 恭喜登顶！你的作品称霸竞技场！'
+                          ? t('score.rankPodium1')
                           : rank === 2
-                          ? '🥈 太棒了！一举夺得亚军宝座！'
-                          : '🥉 闯进三甲，实力不凡！'}
+                          ? t('score.rankPodium2')
+                          : t('score.rankPodium3')}
                       </p>
                       <p className="text-[11px] text-cream-subtle">
-                        在 {totalScored || '—'} 名挑战者中排名第 {rank}
+                        #{rank} {t('score.rankCount')} {totalScored || '—'}
                       </p>
                     </div>
                   ) : (
@@ -251,13 +261,13 @@ export default function ScoreReveal({
                       </div>
                       <p className="text-sm text-cream-muted">
                         {rank <= 10
-                          ? `激烈竞争！已跻身前十榜单`
-                          : `摄影之路，始于足下`}
+                          ? t('score.rankTop10')
+                          : t('score.rankBelow10')}
                       </p>
                       <p className="text-[11px] text-cream-subtle">
                         {rank <= 10
-                          ? '研究榜上前辈的作品，继续打磨技艺'
-                          : '每一位大师都曾是初学者，坚持拍摄！'}
+                          ? t('score.rankTop10Sub')
+                          : t('score.rankBelow10Sub')}
                       </p>
                     </div>
                   )}
@@ -277,7 +287,7 @@ export default function ScoreReveal({
                     <Quote className="absolute top-3 left-3 w-4 h-4 text-ink-600" strokeWidth={1.5} />
                     {hasAttributes ? (
                       <p className="text-sm text-cream-muted leading-relaxed pl-5">
-                        Analysis across <span className="text-gold-400">{attributes.length}</span> dimensions
+                        {t('score.dimensions')}
                       </p>
                     ) : (
                       <p className="text-sm text-cream-muted leading-relaxed pl-5">{review}</p>
@@ -291,7 +301,7 @@ export default function ScoreReveal({
                         className="w-full flex items-center justify-between bg-ink-800/40 rounded-xl px-4 py-3 border border-ink-700/30 hover:border-ink-600/50 transition-colors group"
                       >
                         <span className="text-xs font-medium text-cream-muted">
-                          {attributes.length} dimensions
+                          {attributes.length} {t('score.dimensions')}
                         </span>
                         {showAttributes ? (
                           <ChevronUp className="w-4 h-4 text-cream-subtle" strokeWidth={1.5} />
@@ -349,7 +359,7 @@ export default function ScoreReveal({
                     onClick={onViewLeaderboard}
                     className="text-[11px] font-medium tracking-[0.1em] uppercase text-gold-400 hover:text-gold-300 transition-colors"
                   >
-                    查看完整排行榜 →
+                    {t('score.viewLeaderboard')}
                   </button>
                 </motion.div>
               )}

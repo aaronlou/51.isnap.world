@@ -39,7 +39,7 @@ use infrastructure::{
     },
     storage::local_file_storage::LocalFileStorage,
 };
-use presentation::routes::{battle, donate, health, leaderboard, photos, unsplash};
+use presentation::routes::{battle, donate, health, leaderboard, locale, photos, unsplash};
 
 /// 全局应用状态（依赖注入容器）
 pub struct AppState {
@@ -208,6 +208,7 @@ async fn main() {
         .route("/api/photos/:id", axum::routing::delete(photos::delete_photo))
         .route("/api/photos/:id/battle", post(battle::battle_photo))
         .route("/api/unsplash/random", get(unsplash::random_unsplash_photo))
+        .route("/api/locale", get(locale::detect_locale))
         .route("/api/health", get(health::health_check))
         .route("/api/donate", post(donate::create_checkout_session))
         .nest_service("/uploads", ServeDir::new("./uploads"))

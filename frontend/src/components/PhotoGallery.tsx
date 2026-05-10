@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Star, Loader2, ImageOff, X, ChevronLeft, ChevronRight, Trash2, MessageSquare, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
 import type { Photo } from '@/types/photo'
+import { useLocale } from '@/i18n/LocaleContext'
 
 interface PhotoGalleryProps {
   photos: Photo[]
@@ -18,6 +19,7 @@ export default function PhotoGallery({
   scoringId,
   onDelete,
 }: PhotoGalleryProps) {
+  const { t } = useLocale()
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [expandedReview, setExpandedReview] = useState(false)
 
@@ -35,8 +37,8 @@ export default function PhotoGallery({
         <div className="w-12 h-12 rounded-full bg-ink-900 border border-ink-800 flex items-center justify-center mx-auto mb-5">
           <ImageOff className="w-5 h-5 text-cream-subtle" strokeWidth={1.5} />
         </div>
-        <p className="text-cream-muted text-sm">暂无照片</p>
-        <p className="text-cream-subtle text-xs mt-1">上传你的第一张摄影作品</p>
+        <p className="text-cream-muted text-sm">{t('gallery.empty')}</p>
+        <p className="text-cream-subtle text-xs mt-1">{t('gallery.emptySub')}</p>
       </div>
     )
   }
@@ -50,12 +52,12 @@ export default function PhotoGallery({
     <div>
       {/* Header */}
       <div className="text-center mb-12">
-        <p className="label mb-3">作品集</p>
+        <p className="label mb-3">{t('gallery.header')}</p>
         <h2 className="heading-display text-4xl md:text-5xl text-cream mb-3">
-          画廊
+          {t('gallery.title')}
         </h2>
         <p className="text-cream-muted text-sm">
-          {photos.length} 张作品 · {photos.filter((p) => p.score !== undefined).length} 张已评分
+          {photos.length} {t('gallery.count')} · {photos.filter((p) => p.score !== undefined).length} {t('app.scoredCount')}
         </p>
       </div>
 
@@ -109,7 +111,7 @@ export default function PhotoGallery({
                       disabled={scoringId === photo.id}
                       className="text-[11px] font-medium text-gold-400 hover:text-gold-300 transition-colors disabled:opacity-50"
                     >
-                      {scoringId === photo.id ? '评分中...' : 'AI 点评'}
+                      {scoringId === photo.id ? t('gallery.scoring') : t('gallery.aiScore')}
                     </button>
                   )}
                 </div>
@@ -127,7 +129,7 @@ export default function PhotoGallery({
                   <button
                     onClick={(e) => { e.stopPropagation(); onDelete(photo.id) }}
                     className="absolute top-2.5 left-2.5 w-7 h-7 rounded-full bg-ink-950/60 backdrop-blur-sm border border-ink-700/40 flex items-center justify-center text-cream-subtle hover:text-red-400 hover:border-red-400/40 transition-all opacity-0 group-hover:opacity-100"
-                    title="删除照片"
+                    title={t('gallery.delete')}
                   >
                     <Trash2 className="w-3.5 h-3.5" strokeWidth={1.5} />
                   </button>
@@ -216,12 +218,12 @@ export default function PhotoGallery({
                   {scoringId === photos[lightboxIndex].id ? (
                     <>
                       <Loader2 className="w-3 h-3 animate-spin" strokeWidth={1.5} />
-                      评分中...
+                      {t('gallery.scoring')}
                     </>
                   ) : (
                     <>
                       <RefreshCw className="w-3 h-3" strokeWidth={1.5} />
-                      {photos[lightboxIndex].score !== undefined ? '重新评分' : 'AI 点评'}
+                      {photos[lightboxIndex].score !== undefined ? t('gallery.rescore') : t('gallery.review')}
                     </>
                   )}
                 </button>
@@ -238,7 +240,7 @@ export default function PhotoGallery({
                   <div className="flex items-center gap-2 mb-2">
                     <MessageSquare className="w-3.5 h-3.5 text-gold-400" strokeWidth={1.5} />
                     <span className="text-[10px] font-medium tracking-[0.15em] uppercase text-gold-400">
-                      AI 点评
+                      {t('gallery.review')}
                     </span>
                   </div>
                   <p
@@ -256,12 +258,12 @@ export default function PhotoGallery({
                       {expandedReview ? (
                         <>
                           <ChevronUp className="w-3 h-3" strokeWidth={1.5} />
-                          收起
+                          {t('gallery.collapse')}
                         </>
                       ) : (
                         <>
                           <ChevronDown className="w-3 h-3" strokeWidth={1.5} />
-                          展开完整点评
+                          {t('gallery.expand')}
                         </>
                       )}
                     </button>
