@@ -41,6 +41,15 @@ pub struct ScoreResultDto {
     pub engine: Option<String>,
 }
 
+/// 对决请求 DTO（可选传递对手信息）
+#[derive(Debug, Clone, Deserialize)]
+pub struct BattleRequestDto {
+    pub opponent_url: Option<String>,
+    pub opponent_title: Option<String>,
+    pub opponent_photographer: Option<String>,
+    pub opponent_photographer_link: Option<String>,
+}
+
 /// 对决结果 DTO
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct BattleResultDto {

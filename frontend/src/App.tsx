@@ -233,6 +233,8 @@ export default function App() {
                 onBattle={handleBattle}
                 isBattling={isBattling}
                 battlingId={battlingId}
+                onUpload={onUpload}
+                isUploading={isUploading}
               />
             </motion.div>
           )}

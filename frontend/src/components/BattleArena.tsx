@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import {
   Swords,
@@ -10,8 +10,9 @@ import {
   Camera,
   Shield,
   Sparkles,
+  Upload,
 } from 'lucide-react'
-import type { Photo } from '@/types/photo'
+import type { Photo, BattleOpponent } from '@/types/photo'
 import type { UnsplashPhoto } from '@/types/unsplash'
 import { fetchRandomUnsplash } from '@/api/unsplash'
 
@@ -19,9 +20,11 @@ interface BattleArenaProps {
   photos: Photo[]
   isLoading: boolean
   onLoadPhotos: () => void
-  onBattle: (id: string) => void
+  onBattle: (id: string, opponent?: BattleOpponent) => void
   isBattling: boolean
   battlingId: string | null
+  onUpload: (file: File) => Promise<void>
+  isUploading: boolean
 }
 
 const CHANGES_KEY = 'battle_opponent_changes_left'
@@ -45,12 +48,16 @@ export default function BattleArena({
   onBattle,
   isBattling,
   battlingId,
+  onUpload,
+  isUploading,
 }: BattleArenaProps) {
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [opponent, setOpponent] = useState<UnsplashPhoto | null>(null)
   const [changesLeft, setChangesLeftState] = useState(getChangesLeft)
   const [isLoadingOpponent, setIsLoadingOpponent] = useState(false)
   const [opponentError, setOpponentError] = useState<string | null>(null)
+  const [uploadError, setUploadError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const selectedPhoto = photos[selectedIndex] ?? null
 
@@ -101,36 +108,66 @@ export default function BattleArena({
     setSelectedIndex((i) => (i + 1) % photos.length)
   }
 
+  const validateFile = (file: File): string | null => {
+    if (file.type !== 'image/jpeg') {
+      return '仅支持 JPEG 格式'
+    }
+    if (file.size > 30 * 1024 * 1024) {
+      return '文件大小超过 30MB 限制'
+    }
+    return null
+  }
+
+  const handleFileSelect = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setUploadError(null)
+      const file = e.target.files?.[0]
+      if (!file) return
+      const err = validateFile(file)
+      if (err) {
+        setUploadError(err)
+        return
+      }
+      onUpload(file)
+      e.target.value = ''
+    },
+    [onUpload]
+  )
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setUploadError(null)
+      const file = e.dataTransfer.files[0]
+      if (!file) return
+      const err = validateFile(file)
+      if (err) {
+        setUploadError(err)
+        return
+      }
+      onUpload(file)
+    },
+    [onUpload]
+  )
+
+  const handleBattleClick = () => {
+    if (!selectedPhoto || !opponent || isBattling) return
+    const opponentDto: BattleOpponent = {
+      opponent_url: opponent.url,
+      opponent_title: opponent.title,
+      opponent_photographer: opponent.photographer,
+      opponent_photographer_link: opponent.photographer_link,
+    }
+    onBattle(selectedPhoto.id, opponentDto)
+  }
+
   const canBattle = selectedPhoto != null && opponent != null && !isBattling
 
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-32">
         <Loader2 className="w-6 h-6 text-cream-muted animate-spin" strokeWidth={1.5} />
-      </div>
-    )
-  }
-
-  // 没有照片：引导上传
-  if (photos.length === 0) {
-    return (
-      <div className="text-center py-24">
-        <div className="w-16 h-16 rounded-full bg-ink-900 border border-ink-800 flex items-center justify-center mx-auto mb-5">
-          <Camera className="w-6 h-6 text-cream-subtle" strokeWidth={1.5} />
-        </div>
-        <h3 className="text-lg font-medium text-cream mb-2">还没有作品</h3>
-        <p className="text-cream-muted text-sm mb-6">先去上传一张照片，再来挑战随机大师</p>
-        <button
-          onClick={() => {
-            // 触发父组件切换到 upload tab
-            const uploadBtn = document.querySelector('[data-tab="upload"]') as HTMLElement
-            uploadBtn?.click()
-          }}
-          className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-gold-400 text-ink-950 text-sm font-medium hover:bg-gold-300 transition-colors"
-        >
-          <Camera className="w-4 h-4" strokeWidth={1.5} />
-          去上传
-        </button>
       </div>
     )
   }
@@ -160,62 +197,128 @@ export default function BattleArena({
             <span className="text-[11px] font-medium tracking-[0.15em] uppercase text-cream-muted">
               你的作品
             </span>
-            <span className="text-[10px] text-cream-subtle ml-auto">
-              {selectedIndex + 1} / {photos.length}
-            </span>
+            {photos.length > 0 && (
+              <span className="text-[10px] text-cream-subtle ml-auto">
+                {selectedIndex + 1} / {photos.length}
+              </span>
+            )}
           </div>
 
           <div className="relative rounded-2xl overflow-hidden bg-ink-900 border border-ink-800/60">
-            {/* Photo */}
-            <div className="aspect-[4/3] relative">
-              <AnimatePresence mode="wait">
-                <motion.img
-                  key={selectedPhoto.id}
-                  src={selectedPhoto.url}
-                  alt={selectedPhoto.filename}
-                  className="w-full h-full object-cover"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.3 }}
+            {photos.length === 0 ? (
+              /* 无作品：上传引导 */
+              <div
+                className="aspect-[4/3] flex flex-col items-center justify-center text-center p-6 cursor-pointer"
+                onDragOver={(e) => { e.preventDefault(); e.stopPropagation() }}
+                onDrop={handleDrop}
+                onClick={() => fileInputRef.current?.click()}
+              >
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,.jpg"
+                  onChange={handleFileSelect}
+                  className="hidden"
+                  disabled={isUploading}
                 />
-              </AnimatePresence>
-
-              {/* Nav arrows */}
-              {photos.length > 1 && (
-                <>
-                  <button
-                    onClick={handlePrevPhoto}
-                    className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-ink-950/60 backdrop-blur-sm flex items-center justify-center text-cream-muted hover:text-cream transition-colors"
+                {isUploading ? (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    className="flex flex-col items-center gap-4"
                   >
-                    <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
-                  </button>
-                  <button
-                    onClick={handleNextPhoto}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-ink-950/60 backdrop-blur-sm flex items-center justify-center text-cream-muted hover:text-cream transition-colors"
-                  >
-                    <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
-                  </button>
-                </>
-              )}
+                    <Loader2 className="w-8 h-8 text-gold-400 animate-spin" strokeWidth={1.5} />
+                    <div>
+                      <p className="text-cream text-sm font-medium">正在上传...</p>
+                      <p className="text-cream-subtle text-xs mt-1">上传完成后将自动评分</p>
+                    </div>
+                  </motion.div>
+                ) : (
+                  <>
+                    <div className="w-14 h-14 rounded-full border border-ink-700 bg-ink-800/50 flex items-center justify-center mb-4">
+                      <Upload className="w-6 h-6 text-cream-muted" strokeWidth={1.5} />
+                    </div>
+                    <p className="text-cream text-sm font-medium mb-1">点击或拖拽上传</p>
+                    <p className="text-cream-subtle text-xs">JPEG 格式 · 最大 30MB</p>
+                  </>
+                )}
+              </div>
+            ) : (
+              <>
+                {/* Photo */}
+                <div className="aspect-[4/3] relative">
+                  <AnimatePresence mode="wait">
+                    <motion.img
+                      key={selectedPhoto.id}
+                      src={selectedPhoto.url}
+                      alt={selectedPhoto.filename}
+                      className="w-full h-full object-cover"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.3 }}
+                    />
+                  </AnimatePresence>
 
-              {/* Score badge */}
-              {selectedPhoto.score != null && (
-                <div className="absolute top-3 right-3 flex items-center gap-1 bg-ink-950/70 backdrop-blur-sm rounded-full px-2.5 py-1">
-                  <Sparkles className="w-3 h-3 text-gold-400" strokeWidth={1.5} />
-                  <span className="text-xs font-bold text-cream">{selectedPhoto.score.toFixed(1)}</span>
+                  {/* Nav arrows */}
+                  {photos.length > 1 && (
+                    <>
+                      <button
+                        onClick={handlePrevPhoto}
+                        className="absolute left-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-ink-950/60 backdrop-blur-sm flex items-center justify-center text-cream-muted hover:text-cream transition-colors"
+                      >
+                        <ChevronLeft className="w-4 h-4" strokeWidth={1.5} />
+                      </button>
+                      <button
+                        onClick={handleNextPhoto}
+                        className="absolute right-3 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-ink-950/60 backdrop-blur-sm flex items-center justify-center text-cream-muted hover:text-cream transition-colors"
+                      >
+                        <ChevronRight className="w-4 h-4" strokeWidth={1.5} />
+                      </button>
+                    </>
+                  )}
+
+                  {/* Score badge */}
+                  {selectedPhoto.score != null && (
+                    <div className="absolute top-3 right-3 flex items-center gap-1 bg-ink-950/70 backdrop-blur-sm rounded-full px-2.5 py-1">
+                      <Sparkles className="w-3 h-3 text-gold-400" strokeWidth={1.5} />
+                      <span className="text-xs font-bold text-cream">{selectedPhoto.score.toFixed(1)}</span>
+                    </div>
+                  )}
+
+                  {/* Upload new photo button (overlay on photo) */}
+                  <button
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={isUploading}
+                    className="absolute bottom-3 left-3 flex items-center gap-1.5 bg-ink-950/70 backdrop-blur-sm rounded-full px-3 py-1.5 text-[10px] text-cream-muted hover:text-gold-400 transition-colors disabled:opacity-40"
+                  >
+                    <Upload className="w-3 h-3" strokeWidth={1.5} />
+                    上传新作品
+                  </button>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/jpeg,.jpg"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    disabled={isUploading}
+                  />
                 </div>
-              )}
-            </div>
 
-            {/* Info */}
-            <div className="p-4">
-              <p className="text-sm text-cream font-medium truncate">{selectedPhoto.filename}</p>
-              {selectedPhoto.review && (
-                <p className="text-[11px] text-cream-subtle mt-1 line-clamp-2">{selectedPhoto.review}</p>
-              )}
-            </div>
+                {/* Info */}
+                <div className="p-4">
+                  <p className="text-sm text-cream font-medium truncate">{selectedPhoto.filename}</p>
+                  {selectedPhoto.review && (
+                    <p className="text-[11px] text-cream-subtle mt-1 line-clamp-2">{selectedPhoto.review}</p>
+                  )}
+                </div>
+              </>
+            )}
           </div>
+
+          {uploadError && (
+            <p className="text-[11px] text-red-400 mt-2 text-center">{uploadError}</p>
+          )}
         </div>
 
         {/* Right: Opponent Photo */}
@@ -306,7 +409,7 @@ export default function BattleArena({
       {/* Battle Button */}
       <div className="text-center">
         <button
-          onClick={() => selectedPhoto && onBattle(selectedPhoto.id)}
+          onClick={handleBattleClick}
           disabled={!canBattle}
           className="inline-flex items-center gap-2 px-8 py-3.5 rounded-2xl bg-gold-400 text-ink-950 text-sm font-bold tracking-wide hover:bg-gold-300 transition-colors disabled:opacity-40 disabled:hover:bg-gold-400 disabled:cursor-not-allowed"
         >
@@ -325,7 +428,7 @@ export default function BattleArena({
         {!canBattle && !isBattling && (
           <p className="text-[11px] text-cream-subtle mt-2">
             {!selectedPhoto
-              ? '请先选择一张照片'
+              ? '请先上传一张照片'
               : !opponent
               ? '正在加载对手...'
               : ''}

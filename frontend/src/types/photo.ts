@@ -16,6 +16,13 @@ export interface ScoreResult {
   engine?: string;
 }
 
+export interface BattleOpponent {
+  opponent_url: string;
+  opponent_title: string;
+  opponent_photographer: string;
+  opponent_photographer_link: string;
+}
+
 export interface BattleResult {
   user_photo_id: string;
   user_photo: Photo;
