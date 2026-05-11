@@ -41,6 +41,7 @@ export type TranslationKey =
   | 'gallery.collapse'
   | 'gallery.expand'
   | 'gallery.rescore'
+  | 'gallery.myPhoto'
   | 'leaderboard.title'
   | 'leaderboard.subtitle'
   | 'leaderboard.empty'
@@ -176,6 +177,7 @@ const zh: Record<TranslationKey, string> = {
   'gallery.collapse': '收起',
   'gallery.expand': '展开完整点评',
   'gallery.rescore': '重新评分',
+  'gallery.myPhoto': '我的',
   'leaderboard.title': '荣耀殿堂',
   'leaderboard.subtitle': '位挑战者为王座而战',
   'leaderboard.empty': '竞技场虚位以待',
@@ -312,6 +314,7 @@ const en: Record<TranslationKey, string> = {
   'gallery.collapse': 'Collapse',
   'gallery.expand': 'Expand full review',
   'gallery.rescore': 'Re-score',
+  'gallery.myPhoto': 'Mine',
   'leaderboard.title': 'Hall of Fame',
   'leaderboard.subtitle': 'contestants battling for the throne',
   'leaderboard.empty': 'The arena awaits',

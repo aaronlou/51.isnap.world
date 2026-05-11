@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Star, Loader2, ImageOff, X, ChevronLeft, ChevronRight, Trash2, MessageSquare, ChevronDown, ChevronUp, RefreshCw } from 'lucide-react'
+import { Star, Loader2, ImageOff, X, ChevronLeft, ChevronRight, Trash2, MessageSquare, ChevronDown, ChevronUp, RefreshCw, User } from 'lucide-react'
 import type { Photo } from '@/types/photo'
 import { useLocale } from '@/i18n/LocaleContext'
+import { getUserId } from '@/utils/user'
 
 interface PhotoGalleryProps {
   photos: Photo[]
@@ -124,6 +125,14 @@ export default function PhotoGallery({
                   <div className="absolute top-2.5 right-2.5 flex items-center gap-1 bg-ink-950/70 backdrop-blur-sm rounded-full px-2 py-0.5">
                     <Star className="w-2.5 h-2.5 fill-gold-400 text-gold-400" strokeWidth={1.5} />
                     <span className="text-[10px] font-medium text-cream">{photo.score?.toFixed(1)}</span>
+                  </div>
+                )}
+
+                {/* My photo badge */}
+                {photo.user_id && photo.user_id === getUserId() && (
+                  <div className="absolute top-2.5 left-2.5 flex items-center gap-1 bg-gold-400/90 backdrop-blur-sm rounded-full px-2 py-0.5">
+                    <User className="w-2.5 h-2.5 text-ink-950" strokeWidth={2} />
+                    <span className="text-[10px] font-semibold text-ink-950">{t('gallery.myPhoto')}</span>
                   </div>
                 )}
 

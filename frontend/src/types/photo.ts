@@ -9,6 +9,8 @@ export interface Photo {
   engine?: string;
   /** 是否为 Battle 模式上传（不收录到 Gallery） */
   is_battle?: boolean;
+  /** 上传者匿名用户 ID */
+  user_id?: string;
 }
 
 export interface ScoreResult {

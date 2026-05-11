@@ -39,10 +39,11 @@ use infrastructure::{
     },
     storage::local_file_storage::LocalFileStorage,
 };
-use presentation::routes::{battle, donate, health, leaderboard, locale, photos, unsplash};
+use presentation::routes::{battle, donate, health, leaderboard, locale, me, photos, unsplash};
 
 /// 全局应用状态（依赖注入容器）
 pub struct AppState {
+    pub repository: SqlitePhotoRepository,
     pub upload_photo: UploadPhotoUseCase<SqlitePhotoRepository, LocalFileStorage>,
     pub score_photo: ScorePhotoUseCase<SqlitePhotoRepository>,
     pub list_photos: ListPhotosUseCase<SqlitePhotoRepository>,
@@ -176,7 +177,7 @@ async fn main() {
     let unsplash_client = UnsplashClient::new(unsplash_client_id);
 
     let battle_photo = BattlePhotoUseCase::new(
-        repository,
+        repository.clone(),
         upload_dir.clone(),
         unsplash_client.clone(),
         gemini_api_key,
@@ -186,6 +187,7 @@ async fn main() {
     let random_unsplash = GetRandomUnsplashUseCase::new(unsplash_client);
 
     let state = Arc::new(AppState {
+        repository: repository.clone(),
         upload_photo,
         score_photo,
         list_photos,
@@ -210,6 +212,8 @@ async fn main() {
         .route("/api/unsplash/random", get(unsplash::random_unsplash_photo))
         .route("/api/locale", get(locale::detect_locale))
         .route("/api/health", get(health::health_check))
+        .route("/api/me", get(me::get_me))
+        .route("/api/me", axum::routing::patch(me::update_nickname))
         .route("/api/donate", post(donate::create_checkout_session))
         .nest_service("/uploads", ServeDir::new("./uploads"))
         .nest_service("/thumbnails", ServeDir::new("./uploads/thumbnails"))

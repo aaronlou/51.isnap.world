@@ -1,6 +1,6 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Camera, Grid3X3, BarChart3, Swords, Sparkles, Brain, Image as ImageIcon, Heart } from 'lucide-react'
+import { Camera, Grid3X3, BarChart3, Swords, Sparkles, Brain, Image as ImageIcon, Heart, Pencil, Check, X } from 'lucide-react'
 import UploadZone from '@/components/UploadZone'
 import ScoreReveal from '@/components/ScoreReveal'
 import Leaderboard from '@/components/Leaderboard'
@@ -14,6 +14,8 @@ import { useLeaderboard } from '@/hooks/useLeaderboard'
 import { useBattle } from '@/hooks/useBattle'
 import { useLocale } from '@/i18n/LocaleContext'
 import type { Tab } from '@/types/photo'
+import { fetchMe, updateNickname } from '@/api/me'
+import { getUserId } from '@/utils/user'
 
 export default function App() {
   const { t } = useLocale()
@@ -130,6 +132,54 @@ export default function App() {
   const galleryPhotos = photos.filter((p) => !p.is_battle)
   const scoredCount = galleryPhotos.filter((p) => p.score !== undefined).length
 
+  // 用户昵称状态
+  const [nickname, setNickname] = useState<string | null>(null)
+  const [isEditingNickname, setIsEditingNickname] = useState(false)
+  const [editNicknameValue, setEditNicknameValue] = useState('')
+  const nicknameInputRef = useRef<HTMLInputElement>(null)
+
+  // 加载用户昵称
+  const loadNickname = async () => {
+    try {
+      const me = await fetchMe()
+      if (me) {
+        setNickname(me.nickname)
+      }
+    } catch {
+      // 静默失败：未激活用户没有记录
+    }
+  }
+
+  useEffect(() => {
+    loadNickname()
+  }, [photos.length])
+
+  const startEditNickname = () => {
+    setEditNicknameValue(nickname || '')
+    setIsEditingNickname(true)
+    setTimeout(() => nicknameInputRef.current?.focus(), 50)
+  }
+
+  const cancelEditNickname = () => {
+    setIsEditingNickname(false)
+    setEditNicknameValue('')
+  }
+
+  const saveNickname = async () => {
+    const trimmed = editNicknameValue.trim()
+    if (!trimmed || trimmed.length > 32) {
+      cancelEditNickname()
+      return
+    }
+    try {
+      await updateNickname(trimmed)
+      setNickname(trimmed)
+    } catch (err) {
+      console.error('Failed to update nickname:', err)
+    }
+    setIsEditingNickname(false)
+  }
+
   return (
     <div className="min-h-screen bg-ink-950 text-cream grain">
       {/* Header */}
@@ -152,6 +202,39 @@ export default function App() {
               <Heart className="w-3.5 h-3.5" strokeWidth={1.5} />
               <span>{t('app.donate')}</span>
             </button>
+            {/* Nickname display / editor */}
+            {nickname && !isEditingNickname && (
+              <button
+                onClick={startEditNickname}
+                className="flex items-center gap-1 text-xs text-gold-400 bg-gold-400/8 hover:bg-gold-400/15 px-2.5 py-1 rounded-full transition-colors"
+                title="Click to edit nickname"
+              >
+                <span>{nickname}</span>
+                <Pencil className="w-3 h-3 opacity-60" strokeWidth={1.5} />
+              </button>
+            )}
+            {isEditingNickname && (
+              <div className="flex items-center gap-1">
+                <input
+                  ref={nicknameInputRef}
+                  value={editNicknameValue}
+                  onChange={(e) => setEditNicknameValue(e.target.value)}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') saveNickname()
+                    if (e.key === 'Escape') cancelEditNickname()
+                  }}
+                  onBlur={saveNickname}
+                  className="w-28 text-xs bg-ink-900 border border-gold-400/30 rounded-full px-2.5 py-1 text-cream outline-none focus:border-gold-400/60"
+                  maxLength={32}
+                />
+                <button onClick={saveNickname} className="text-gold-400 hover:text-gold-300">
+                  <Check className="w-3.5 h-3.5" strokeWidth={2} />
+                </button>
+                <button onClick={cancelEditNickname} className="text-cream-subtle hover:text-cream">
+                  <X className="w-3.5 h-3.5" strokeWidth={2} />
+                </button>
+              </div>
+            )}
             <div className="hidden sm:flex items-center gap-2 text-xs text-cream-muted">
               <span className="w-1.5 h-1.5 rounded-full bg-gold-400" />
               <span>{scoredCount} {t('app.scoredCount')}</span>

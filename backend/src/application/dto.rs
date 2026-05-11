@@ -15,6 +15,7 @@ pub struct PhotoDto {
     pub url: String,
     pub thumbnail_url: String,
     pub engine: Option<String>,
+    pub user_id: Option<String>,
 }
 
 impl PhotoDto {
@@ -28,6 +29,7 @@ impl PhotoDto {
             url: photo.url(base_url),
             thumbnail_url: photo.thumbnail_url(base_url),
             engine: photo.engine.clone(),
+            user_id: photo.user_id.clone(),
         }
     }
 }

@@ -29,6 +29,8 @@ pub struct Photo {
     pub engine: Option<String>,
     /// 是否为 Battle 模式上传的照片（不收录到 Gallery）
     pub is_battle: bool,
+    /// 上传者匿名用户 ID（NULL 表示历史遗留数据）
+    pub user_id: Option<String>,
 }
 
 impl Photo {
@@ -41,6 +43,7 @@ impl Photo {
             uploaded_at: Utc::now(),
             engine: None,
             is_battle: false,
+            user_id: None,
         }
     }
 
@@ -53,6 +56,7 @@ impl Photo {
             uploaded_at: Utc::now(),
             engine: None,
             is_battle: true,
+            user_id: None,
         }
     }
 

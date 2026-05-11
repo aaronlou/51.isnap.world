@@ -29,6 +29,17 @@ impl SqlitePhotoRepository {
 
     fn init(&self) -> Result<(), DomainError> {
         self.with_conn(|conn| {
+            // 用户表：匿名用户及未来 OAuth 用户的统一存储
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS users (
+                    id TEXT PRIMARY KEY,
+                    created_at TEXT NOT NULL,
+                    last_seen_at TEXT NOT NULL,
+                    nickname TEXT
+                )",
+                [],
+            )?;
+
             conn.execute(
                 "CREATE TABLE IF NOT EXISTS photos (
                     id TEXT PRIMARY KEY,
@@ -37,13 +48,19 @@ impl SqlitePhotoRepository {
                     review TEXT,
                     uploaded_at TEXT NOT NULL,
                     engine TEXT,
-                    is_battle INTEGER DEFAULT 0
+                    is_battle INTEGER DEFAULT 0,
+                    user_id TEXT
                 )",
                 [],
             )?;
             // 兼容旧数据库：尝试添加 is_battle 列（已存在则忽略错误）
             let _ = conn.execute(
                 "ALTER TABLE photos ADD COLUMN is_battle INTEGER DEFAULT 0",
+                [],
+            );
+            // 兼容旧数据库：尝试添加 user_id 列
+            let _ = conn.execute(
+                "ALTER TABLE photos ADD COLUMN user_id TEXT",
                 [],
             );
             Ok(())
@@ -59,6 +76,50 @@ impl SqlitePhotoRepository {
         })?;
         f(&conn).map_err(|e| DomainError::StorageError(e.to_string()))
     }
+
+    /// 确保用户记录存在（创建或更新 last_seen_at），首次创建时分配随机昵称
+    pub async fn ensure_user(&self, user_id: &str) -> Result<(), DomainError> {
+        self.with_conn(|conn| {
+            let now = Utc::now().to_rfc3339();
+            let nickname = generate_random_nickname();
+            conn.execute(
+                "INSERT INTO users (id, created_at, last_seen_at, nickname)
+                 VALUES (?1, ?2, ?2, ?3)
+                 ON CONFLICT(id) DO UPDATE SET last_seen_at = excluded.last_seen_at",
+                params![user_id, now, nickname],
+            )?;
+            Ok(())
+        })
+    }
+
+    pub async fn get_user(&self, user_id: &str) -> Result<Option<UserRecord>, DomainError> {
+        self.with_conn(|conn| {
+            let mut stmt = conn.prepare(
+                "SELECT id, created_at, last_seen_at, nickname FROM users WHERE id = ?1"
+            )?;
+            let mut rows = stmt.query([user_id])?;
+            if let Some(row) = rows.next()? {
+                Ok(Some(UserRecord {
+                    id: row.get(0)?,
+                    created_at: row.get(1)?,
+                    last_seen_at: row.get(2)?,
+                    nickname: row.get(3)?,
+                }))
+            } else {
+                Ok(None)
+            }
+        })
+    }
+
+    pub async fn update_nickname(&self, user_id: &str, nickname: &str) -> Result<(), DomainError> {
+        self.with_conn(|conn| {
+            conn.execute(
+                "UPDATE users SET nickname = ?1 WHERE id = ?2",
+                params![nickname, user_id],
+            )?;
+            Ok(())
+        })
+    }
 }
 
 #[async_trait::async_trait]
@@ -66,13 +127,14 @@ impl PhotoRepository for SqlitePhotoRepository {
     async fn save(&self, photo: &Photo) -> Result<(), DomainError> {
         self.with_conn(|conn| {
             conn.execute(
-                "INSERT INTO photos (id, filename, score, review, uploaded_at, engine, is_battle)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
+                "INSERT INTO photos (id, filename, score, review, uploaded_at, engine, is_battle, user_id)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8)
                  ON CONFLICT(id) DO UPDATE SET
                     score = excluded.score,
                     review = excluded.review,
                     engine = excluded.engine,
-                    is_battle = excluded.is_battle",
+                    is_battle = excluded.is_battle,
+                    user_id = excluded.user_id",
                 params![
                     photo.id.as_str(),
                     photo.filename,
@@ -81,6 +143,7 @@ impl PhotoRepository for SqlitePhotoRepository {
                     photo.uploaded_at.to_rfc3339(),
                     photo.engine,
                     photo.is_battle as i32,
+                    photo.user_id.as_ref(),
                 ],
             )?;
             Ok(())
@@ -91,7 +154,7 @@ impl PhotoRepository for SqlitePhotoRepository {
         tracing::debug!("Looking up photo by id: {:?}", id.as_str());
         self.with_conn(|conn| {
             let mut stmt = conn.prepare(
-                "SELECT id, filename, score, review, uploaded_at, engine, is_battle FROM photos WHERE id = ?1"
+                "SELECT id, filename, score, review, uploaded_at, engine, is_battle, user_id FROM photos WHERE id = ?1"
             )?;
             let mut rows = stmt.query([id.as_str()])?;
             if let Some(row) = rows.next()? {
@@ -114,7 +177,7 @@ impl PhotoRepository for SqlitePhotoRepository {
     async fn list_all(&self) -> Result<Vec<Photo>, DomainError> {
         self.with_conn(|conn| {
             let mut stmt = conn.prepare(
-                "SELECT id, filename, score, review, uploaded_at, engine, is_battle FROM photos ORDER BY uploaded_at DESC"
+                "SELECT id, filename, score, review, uploaded_at, engine, is_battle, user_id FROM photos ORDER BY uploaded_at DESC"
             )?;
             let rows = stmt.query_map([], row_to_photo)?;
             rows.collect::<Result<Vec<_>, _>>()
@@ -125,7 +188,7 @@ impl PhotoRepository for SqlitePhotoRepository {
     async fn list_top_scored(&self, limit: usize) -> Result<Vec<Photo>, DomainError> {
         self.with_conn(|conn| {
             let mut stmt = conn.prepare(
-                "SELECT id, filename, score, review, uploaded_at, engine, is_battle FROM photos
+                "SELECT id, filename, score, review, uploaded_at, engine, is_battle, user_id FROM photos
                  WHERE score IS NOT NULL AND is_battle = 0 ORDER BY score DESC LIMIT ?1"
             )?;
             let rows = stmt.query_map([limit], row_to_photo)?;
@@ -156,6 +219,7 @@ fn row_to_photo(row: &rusqlite::Row) -> Result<Photo, rusqlite::Error> {
         _ => None,
     };
     let is_battle: i32 = row.get(6).unwrap_or(0);
+    let user_id: Option<String> = row.get(7).ok();
 
     Ok(Photo {
         id: PhotoId::new(row.get(0)?),
@@ -165,5 +229,40 @@ fn row_to_photo(row: &rusqlite::Row) -> Result<Photo, rusqlite::Error> {
         uploaded_at,
         engine: row.get(5)?,
         is_battle: is_battle != 0,
+        user_id,
     })
+}
+
+/// 用户记录（用于返回给表现层）
+#[derive(Debug, Clone)]
+pub struct UserRecord {
+    pub id: String,
+    pub created_at: String,
+    pub last_seen_at: String,
+    pub nickname: Option<String>,
+}
+
+/// 生成随机趣味昵称
+fn generate_random_nickname() -> String {
+    use std::time::{SystemTime, UNIX_EPOCH};
+
+    let adjectives = [
+        "好奇的", "执着的", "浪漫的", "孤独的", "疯狂的",
+        "安静的", "自由的", "迷茫的", "敏锐的", "慵懒的",
+        "炽热的", "冷静的", "倔强的", "温柔的", "狂野的",
+    ];
+    let nouns = [
+        "摄影师", "追光者", "快门手", "取景框", "暗房师",
+        "光影师", "构图家", "镜头客", "胶片人", "曝光师",
+        "逐影人", "拾光者", "映像师", "焦距控", "感光体",
+    ];
+
+    let seed = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap_or_default()
+        .as_nanos() as usize;
+    let adj = adjectives[seed % adjectives.len()];
+    let noun = nouns[(seed / adjectives.len()) % nouns.len()];
+    let num = (seed % 9000) + 1000;
+    format!("{}{}#{}", adj, noun, num)
 }

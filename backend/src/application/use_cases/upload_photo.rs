@@ -32,17 +32,18 @@ impl<R: PhotoRepository, S: FileStorage> UploadPhotoUseCase<R, S> {
         }
     }
 
-    pub async fn execute(&self, filename: String, data: Vec<u8>, is_battle: bool) -> Result<PhotoDto, DomainError> {
+    pub async fn execute(&self, filename: String, data: Vec<u8>, is_battle: bool, user_id: Option<String>) -> Result<PhotoDto, DomainError> {
         // 1. 领域层验证（值对象封装验证逻辑）
         let file = FileUpload::validate(filename, data)?;
 
         // 2. 创建领域实体
         let id = PhotoId::new(uuid::Uuid::new_v4().to_string());
-        let photo = if is_battle {
+        let mut photo = if is_battle {
             Photo::new_battle(id, file.filename)
         } else {
             Photo::new(id, file.filename)
         };
+        photo.user_id = user_id;
 
         // 3. 存储文件（通过端口抽象，不依赖具体文件系统）
         let path = photo.storage_path(&self.upload_dir);

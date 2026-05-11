@@ -28,6 +28,15 @@ pub async fn upload_photo(
         info!("Content-Type: {:?}", ct);
     }
 
+    // 提取匿名用户 ID（上传即激活）
+    let user_id = headers
+        .get("X-User-ID")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.to_string());
+    if let Some(ref uid) = user_id {
+        state.repository.ensure_user(uid).await?;
+    }
+
     let mut filename = String::new();
     let mut file_bytes: Option<Bytes> = None;
     let mut is_battle = false;
@@ -69,7 +78,7 @@ pub async fn upload_photo(
 
     let photo = state
         .upload_photo
-        .execute(filename, file_bytes.to_vec(), is_battle)
+        .execute(filename, file_bytes.to_vec(), is_battle, user_id)
         .await?;
     Ok((axum::http::StatusCode::CREATED, Json(photo)))
 }
