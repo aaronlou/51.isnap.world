@@ -13,6 +13,15 @@ export interface Photo {
   user_id?: string;
 }
 
+export interface PersonalStats {
+  total_scored: number;
+  avg_score: number;
+  best_score: number;
+  is_first_score: boolean;
+  is_new_best: boolean;
+  score_change?: number;
+}
+
 export interface ScoreResult {
   id: string;
   score: number;
@@ -20,6 +29,8 @@ export interface ScoreResult {
   engine?: string;
   /** 是否达到画廊收录标准 */
   accepted?: boolean;
+  /** 个人纵向统计 */
+  personal_stats?: PersonalStats;
 }
 
 export interface BattleOpponent {

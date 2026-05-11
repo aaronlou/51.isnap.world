@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Star, Quote, ChevronDown, ChevronUp, Sparkles, Crown, Trophy, Swords, ArrowUp } from 'lucide-react'
+import { X, Star, Quote, ChevronDown, ChevronUp, Sparkles, Crown, Trophy, Swords, ArrowUp, TrendingUp, TrendingDown, Award } from 'lucide-react'
 import { useLocale } from '@/i18n/LocaleContext'
 import type { TranslationKey } from '@/i18n/locales'
+import type { PersonalStats } from '@/types/photo'
 
 interface ScoreRevealProps {
   score: number
@@ -12,6 +13,7 @@ interface ScoreRevealProps {
   rank?: number | null
   totalScored?: number
   accepted?: boolean
+  personalStats?: PersonalStats
   onClose: () => void
   onViewLeaderboard?: () => void
 }
@@ -73,6 +75,7 @@ export default function ScoreReveal({
   rank,
   totalScored,
   accepted,
+  personalStats,
   onClose,
   onViewLeaderboard,
 }: ScoreRevealProps) {
@@ -249,6 +252,50 @@ export default function ScoreReveal({
                             </svg>
                             {t('score.notAccepted')}
                           </>
+                        )}
+                      </motion.div>
+                    )}
+
+                    {/* Personal longitudinal stats */}
+                    {personalStats && (
+                      <motion.div
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.35 }}
+                        className="mt-3"
+                      >
+                        {personalStats.is_first_score ? (
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-400/8 border border-gold-400/20 text-gold-400 text-xs">
+                            <Sparkles className="w-3.5 h-3.5" strokeWidth={1.5} />
+                            <span>{t('score.firstScore')}</span>
+                          </div>
+                        ) : personalStats.is_new_best ? (
+                          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gold-400/15 border border-gold-400/30 text-gold-400 text-xs">
+                            <Award className="w-3.5 h-3.5" strokeWidth={1.5} />
+                            <span>{t('score.newBest')} {personalStats.best_score.toFixed(1)}</span>
+                          </div>
+                        ) : (
+                          <div className="inline-flex items-center gap-3 px-4 py-2 rounded-full bg-ink-800/50 border border-ink-700/30 text-xs">
+                            {personalStats.score_change !== undefined && personalStats.score_change > 0 ? (
+                              <>
+                                <TrendingUp className="w-3.5 h-3.5 text-emerald-400" strokeWidth={1.5} />
+                                <span className="text-emerald-400">
+                                  {t('score.aboveAvg')} {personalStats.avg_score.toFixed(1)} (+{personalStats.score_change.toFixed(1)})
+                                </span>
+                              </>
+                            ) : personalStats.score_change !== undefined && personalStats.score_change < 0 ? (
+                              <>
+                                <TrendingDown className="w-3.5 h-3.5 text-cream-subtle" strokeWidth={1.5} />
+                                <span className="text-cream-subtle">
+                                  {t('score.belowAvg')} {personalStats.avg_score.toFixed(1)} ({personalStats.score_change.toFixed(1)})
+                                </span>
+                              </>
+                            ) : (
+                              <span className="text-cream-subtle">
+                                {personalStats.total_scored + 1} {t('score.statsSummary')} {personalStats.avg_score.toFixed(1)} · {personalStats.best_score.toFixed(1)}
+                              </span>
+                            )}
+                          </div>
                         )}
                       </motion.div>
                     )}

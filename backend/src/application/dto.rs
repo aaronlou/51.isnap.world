@@ -34,6 +34,23 @@ impl PhotoDto {
     }
 }
 
+/// 个人纵向统计 DTO
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PersonalStatsDto {
+    /// 历史已评分作品数（不含本次）
+    pub total_scored: i32,
+    /// 历史平均分
+    pub avg_score: f32,
+    /// 历史最高分
+    pub best_score: f32,
+    /// 是否首次评分
+    pub is_first_score: bool,
+    /// 本次是否打破个人最高分记录
+    pub is_new_best: bool,
+    /// 相对于历史平均分的变化（本次 - 平均）
+    pub score_change: Option<f32>,
+}
+
 /// 评分结果 DTO
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScoreResultDto {
@@ -43,6 +60,8 @@ pub struct ScoreResultDto {
     pub engine: Option<String>,
     /// 是否达到画廊收录标准
     pub accepted: bool,
+    /// 个人纵向统计（仅当请求带 X-User-ID 时返回）
+    pub personal_stats: Option<PersonalStatsDto>,
 }
 
 /// 对决请求 DTO（可选传递对手信息）

@@ -205,6 +205,21 @@ impl PhotoRepository for SqlitePhotoRepository {
     }
 }
 
+impl SqlitePhotoRepository {
+    /// 查询某用户所有已评分的照片（用于个人纵向统计）
+    pub async fn list_scored_by_user(&self, user_id: &str) -> Result<Vec<Photo>, DomainError> {
+        self.with_conn(|conn| {
+            let mut stmt = conn.prepare(
+                "SELECT id, filename, score, review, uploaded_at, engine, is_battle, user_id
+                 FROM photos WHERE user_id = ?1 AND score IS NOT NULL ORDER BY score DESC"
+            )?;
+            let rows = stmt.query_map([user_id], row_to_photo)?;
+            rows.collect::<Result<Vec<_>, _>>()
+                .map_err(|e| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(e)))
+        })
+    }
+}
+
 /// 统一的行映射函数（消除字段映射的重复和索引错误风险）
 fn row_to_photo(row: &rusqlite::Row) -> Result<Photo, rusqlite::Error> {
     let uploaded_at_str: String = row.get(4)?;

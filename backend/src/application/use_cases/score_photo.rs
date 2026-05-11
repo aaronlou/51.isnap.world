@@ -106,6 +106,7 @@ impl<R: PhotoRepository> ScorePhotoUseCase<R> {
             review: score.review().to_string(),
             engine: Some(engine_label),
             accepted,
+            personal_stats: None,
         })
     }
 }

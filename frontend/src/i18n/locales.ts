@@ -72,6 +72,11 @@ export type TranslationKey =
   | 'score.rankBelow10'
   | 'score.rankTop10Sub'
   | 'score.rankBelow10Sub'
+  | 'score.firstScore'
+  | 'score.newBest'
+  | 'score.aboveAvg'
+  | 'score.belowAvg'
+  | 'score.statsSummary'
   | 'score.rankCount'
   | 'score.dimensions'
   | 'score.accepted'
@@ -208,6 +213,11 @@ const zh: Record<TranslationKey, string> = {
   'score.rankBelow10': '摄影之路，始于足下',
   'score.rankTop10Sub': '研究榜上前辈的作品，继续打磨技艺',
   'score.rankBelow10Sub': '每一位大师都曾是初学者，坚持拍摄！',
+  'score.firstScore': '这是你在这片竞技场的第一部作品，期待你的下一部！',
+  'score.newBest': '新纪录！超越了你的历史最高分',
+  'score.aboveAvg': '超出你的平均分',
+  'score.belowAvg': '低于你的平均分',
+  'score.statsSummary': '部作品 · 平均 · 最高',
   'score.rankCount': '名挑战者中排名第',
   'score.dimensions': '详细点评',
   'score.accepted': '作品已收录至画廊',
@@ -345,6 +355,11 @@ const en: Record<TranslationKey, string> = {
   'score.rankBelow10': 'Every master was once a beginner',
   'score.rankTop10Sub': 'Study the works above you and keep honing your craft',
   'score.rankBelow10Sub': 'Keep shooting — every master started somewhere!',
+  'score.firstScore': "Your first entry in the arena. Can't wait for the next one!",
+  'score.newBest': 'New personal best! Beat your previous record of',
+  'score.aboveAvg': 'Above your average of',
+  'score.belowAvg': 'Below your average of',
+  'score.statsSummary': 'photos · avg · best',
   'score.rankCount': 'of',
   'score.dimensions': 'Detailed Review',
   'score.accepted': 'Photo accepted into gallery',

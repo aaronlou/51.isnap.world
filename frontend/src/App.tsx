@@ -428,6 +428,7 @@ export default function App() {
             rank={scoredRank}
             totalScored={leaderboard.length}
             accepted={scoreResult.accepted}
+            personalStats={scoreResult.personal_stats}
             onClose={handleCloseScore}
             onViewLeaderboard={() => {
               handleCloseScore()
