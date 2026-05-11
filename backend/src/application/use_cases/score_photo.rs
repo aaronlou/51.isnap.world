@@ -68,8 +68,36 @@ impl<R: PhotoRepository> ScorePhotoUseCase<R> {
         // 4. 领域实体执行业务行为
         photo.assign_score(score.clone(), engine_label.clone())?;
 
-        // 5. 持久化更新
-        self.repository.save(&photo).await?;
+        // 5. 判断是否达到画廊收录标准
+        let accepted = score.value() >= crate::domain::score::Score::GALLERY_THRESHOLD;
+
+        if accepted {
+            // 5a. 达标：持久化更新
+            self.repository.save(&photo).await?;
+        } else {
+            // 5b. 未达标：从数据库和文件系统中清理，避免占用存储
+            self.repository.delete(&id).await?;
+            tracing::info!("Photo {} scored {:.1}, below threshold {:.1}, deleted", photo_id, score.value(), crate::domain::score::Score::GALLERY_THRESHOLD);
+
+            // 删除原始图片
+            let storage_path = photo.storage_path(&self.upload_dir);
+            if storage_path.exists() {
+                if let Err(e) = std::fs::remove_file(&storage_path) {
+                    tracing::warn!("Failed to delete original image {}: {}", storage_path.display(), e);
+                }
+            }
+
+            // 删除缩略图
+            let thumb_path = self
+                .upload_dir
+                .join("thumbnails")
+                .join(format!("{}.jpg", photo.id.as_str()));
+            if thumb_path.exists() {
+                if let Err(e) = std::fs::remove_file(&thumb_path) {
+                    tracing::warn!("Failed to delete thumbnail {}: {}", thumb_path.display(), e);
+                }
+            }
+        }
 
         // 6. 返回 DTO
         Ok(ScoreResultDto {
@@ -77,6 +105,7 @@ impl<R: PhotoRepository> ScorePhotoUseCase<R> {
             score: score.value(),
             review: score.review().to_string(),
             engine: Some(engine_label),
+            accepted,
         })
     }
 }

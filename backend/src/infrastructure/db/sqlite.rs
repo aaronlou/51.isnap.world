@@ -36,10 +36,16 @@ impl SqlitePhotoRepository {
                     score REAL,
                     review TEXT,
                     uploaded_at TEXT NOT NULL,
-                    engine TEXT
+                    engine TEXT,
+                    is_battle INTEGER DEFAULT 0
                 )",
                 [],
             )?;
+            // 兼容旧数据库：尝试添加 is_battle 列（已存在则忽略错误）
+            let _ = conn.execute(
+                "ALTER TABLE photos ADD COLUMN is_battle INTEGER DEFAULT 0",
+                [],
+            );
             Ok(())
         })
     }
@@ -60,12 +66,13 @@ impl PhotoRepository for SqlitePhotoRepository {
     async fn save(&self, photo: &Photo) -> Result<(), DomainError> {
         self.with_conn(|conn| {
             conn.execute(
-                "INSERT INTO photos (id, filename, score, review, uploaded_at, engine)
-                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+                "INSERT INTO photos (id, filename, score, review, uploaded_at, engine, is_battle)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)
                  ON CONFLICT(id) DO UPDATE SET
                     score = excluded.score,
                     review = excluded.review,
-                    engine = excluded.engine",
+                    engine = excluded.engine,
+                    is_battle = excluded.is_battle",
                 params![
                     photo.id.as_str(),
                     photo.filename,
@@ -73,6 +80,7 @@ impl PhotoRepository for SqlitePhotoRepository {
                     photo.review,
                     photo.uploaded_at.to_rfc3339(),
                     photo.engine,
+                    photo.is_battle as i32,
                 ],
             )?;
             Ok(())
@@ -83,7 +91,7 @@ impl PhotoRepository for SqlitePhotoRepository {
         tracing::debug!("Looking up photo by id: {:?}", id.as_str());
         self.with_conn(|conn| {
             let mut stmt = conn.prepare(
-                "SELECT id, filename, score, review, uploaded_at, engine FROM photos WHERE id = ?1"
+                "SELECT id, filename, score, review, uploaded_at, engine, is_battle FROM photos WHERE id = ?1"
             )?;
             let mut rows = stmt.query([id.as_str()])?;
             if let Some(row) = rows.next()? {
@@ -106,7 +114,7 @@ impl PhotoRepository for SqlitePhotoRepository {
     async fn list_all(&self) -> Result<Vec<Photo>, DomainError> {
         self.with_conn(|conn| {
             let mut stmt = conn.prepare(
-                "SELECT id, filename, score, review, uploaded_at, engine FROM photos ORDER BY uploaded_at DESC"
+                "SELECT id, filename, score, review, uploaded_at, engine, is_battle FROM photos ORDER BY uploaded_at DESC"
             )?;
             let rows = stmt.query_map([], row_to_photo)?;
             rows.collect::<Result<Vec<_>, _>>()
@@ -117,8 +125,8 @@ impl PhotoRepository for SqlitePhotoRepository {
     async fn list_top_scored(&self, limit: usize) -> Result<Vec<Photo>, DomainError> {
         self.with_conn(|conn| {
             let mut stmt = conn.prepare(
-                "SELECT id, filename, score, review, uploaded_at, engine FROM photos
-                 WHERE score IS NOT NULL ORDER BY score DESC LIMIT ?1"
+                "SELECT id, filename, score, review, uploaded_at, engine, is_battle FROM photos
+                 WHERE score IS NOT NULL AND is_battle = 0 ORDER BY score DESC LIMIT ?1"
             )?;
             let rows = stmt.query_map([limit], row_to_photo)?;
             rows.collect::<Result<Vec<_>, _>>()
@@ -147,6 +155,7 @@ fn row_to_photo(row: &rusqlite::Row) -> Result<Photo, rusqlite::Error> {
         (Some(v), Some(r)) => Score::new(v, r).ok(),
         _ => None,
     };
+    let is_battle: i32 = row.get(6).unwrap_or(0);
 
     Ok(Photo {
         id: PhotoId::new(row.get(0)?),
@@ -155,5 +164,6 @@ fn row_to_photo(row: &rusqlite::Row) -> Result<Photo, rusqlite::Error> {
         review,
         uploaded_at,
         engine: row.get(5)?,
+        is_battle: is_battle != 0,
     })
 }

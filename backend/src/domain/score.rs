@@ -13,6 +13,8 @@ pub struct Score {
 impl Score {
     pub const MIN: f32 = 0.0;
     pub const MAX: f32 = 5.0;
+    /// 收录到画廊的最低评分阈值
+    pub const GALLERY_THRESHOLD: f32 = 3.8;
 
     pub fn new(value: f32, review: String) -> Result<Self, DomainError> {
         if value.is_nan() || value.is_infinite() {

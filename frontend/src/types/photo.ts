@@ -7,6 +7,8 @@ export interface Photo {
   thumbnail_url: string;
   uploaded_at: string;
   engine?: string;
+  /** 是否为 Battle 模式上传（不收录到 Gallery） */
+  is_battle?: boolean;
 }
 
 export interface ScoreResult {
@@ -14,6 +16,8 @@ export interface ScoreResult {
   score: number;
   review: string;
   engine?: string;
+  /** 是否达到画廊收录标准 */
+  accepted?: boolean;
 }
 
 export interface BattleOpponent {

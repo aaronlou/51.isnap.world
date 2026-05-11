@@ -27,6 +27,8 @@ pub struct Photo {
     pub review: Option<String>,
     pub uploaded_at: DateTime<Utc>,
     pub engine: Option<String>,
+    /// 是否为 Battle 模式上传的照片（不收录到 Gallery）
+    pub is_battle: bool,
 }
 
 impl Photo {
@@ -38,6 +40,19 @@ impl Photo {
             review: None,
             uploaded_at: Utc::now(),
             engine: None,
+            is_battle: false,
+        }
+    }
+
+    pub fn new_battle(id: PhotoId, filename: String) -> Self {
+        Self {
+            id,
+            filename,
+            score: None,
+            review: None,
+            uploaded_at: Utc::now(),
+            engine: None,
+            is_battle: true,
         }
     }
 

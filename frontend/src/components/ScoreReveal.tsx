@@ -11,6 +11,7 @@ interface ScoreRevealProps {
   engine?: string
   rank?: number | null
   totalScored?: number
+  accepted?: boolean
   onClose: () => void
   onViewLeaderboard?: () => void
 }
@@ -71,6 +72,7 @@ export default function ScoreReveal({
   engine,
   rank,
   totalScored,
+  accepted,
   onClose,
   onViewLeaderboard,
 }: ScoreRevealProps) {
@@ -220,6 +222,36 @@ export default function ScoreReveal({
                       {rankLabel.label}
                     </span>
                     <p className="text-[11px] text-cream-subtle">{rankLabel.sub}</p>
+
+                    {/* Gallery acceptance status */}
+                    {accepted !== undefined && (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        transition={{ delay: 0.2 }}
+                        className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium ${
+                          accepted
+                            ? 'bg-emerald-400/10 text-emerald-400 border border-emerald-400/20'
+                            : 'bg-ink-700/40 text-cream-subtle border border-ink-600/30'
+                        }`}
+                      >
+                        {accepted ? (
+                          <>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                            {t('score.accepted')}
+                          </>
+                        ) : (
+                          <>
+                            <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            {t('score.notAccepted')}
+                          </>
+                        )}
+                      </motion.div>
+                    )}
                   </motion.div>
                 )}
               </AnimatePresence>

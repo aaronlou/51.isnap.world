@@ -23,6 +23,9 @@ export default function PhotoGallery({
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null)
   const [expandedReview, setExpandedReview] = useState(false)
 
+  // Gallery 只显示非 Battle 照片
+  const galleryPhotos = photos.filter((p) => !p.is_battle)
+
   if (isLoading) {
     return (
       <div className="flex items-center justify-center py-32">
@@ -31,7 +34,7 @@ export default function PhotoGallery({
     )
   }
 
-  if (photos.length === 0) {
+  if (galleryPhotos.length === 0) {
     return (
       <div className="text-center py-32">
         <div className="w-12 h-12 rounded-full bg-ink-900 border border-ink-800 flex items-center justify-center mx-auto mb-5">
@@ -45,8 +48,8 @@ export default function PhotoGallery({
 
   const openLightbox = (index: number) => setLightboxIndex(index)
   const closeLightbox = () => setLightboxIndex(null)
-  const prevImage = () => setLightboxIndex((i) => (i !== null ? (i - 1 + photos.length) % photos.length : null))
-  const nextImage = () => setLightboxIndex((i) => (i !== null ? (i + 1) % photos.length : null))
+  const prevImage = () => setLightboxIndex((i) => (i !== null ? (i - 1 + galleryPhotos.length) % galleryPhotos.length : null))
+  const nextImage = () => setLightboxIndex((i) => (i !== null ? (i + 1) % galleryPhotos.length : null))
 
   return (
     <div>
@@ -57,13 +60,13 @@ export default function PhotoGallery({
           {t('gallery.title')}
         </h2>
         <p className="text-cream-muted text-sm">
-          {photos.length} {t('gallery.count')} · {photos.filter((p) => p.score !== undefined).length} {t('app.scoredCount')}
+          {galleryPhotos.length} {t('gallery.count')} · {galleryPhotos.filter((p) => p.score !== undefined).length} {t('app.scoredCount')}
         </p>
       </div>
 
       {/* Grid */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
-        {photos.map((photo, index) => {
+        {galleryPhotos.map((photo, index) => {
           const hasScore = photo.score !== undefined
 
           return (
@@ -185,8 +188,8 @@ export default function PhotoGallery({
               onClick={(e) => e.stopPropagation()}
             >
               <img
-                src={photos[lightboxIndex].url}
-                alt={photos[lightboxIndex].filename}
+                src={galleryPhotos[lightboxIndex].url}
+                alt={galleryPhotos[lightboxIndex].filename}
                 className="max-w-full max-h-[85vh] object-contain rounded-2xl"
               />
             </motion.div>
@@ -195,8 +198,8 @@ export default function PhotoGallery({
             <div className="absolute bottom-6 left-1/2 -translate-x-1/2 w-full max-w-2xl px-4">
               {/* Pills row */}
               <div className="flex items-center justify-center gap-4 bg-ink-900/80 backdrop-blur-md rounded-full px-5 py-2.5 border border-ink-700/40 mx-auto w-fit mb-3">
-                <span className="text-xs text-cream-muted">{photos[lightboxIndex].filename}</span>
-                {photos[lightboxIndex].score !== undefined && (
+                <span className="text-xs text-cream-muted">{galleryPhotos[lightboxIndex].filename}</span>
+                {galleryPhotos[lightboxIndex].score !== undefined && (
                   <>
                     <span className="w-px h-3 bg-ink-700" />
                     <div className="flex items-center gap-1.5">
@@ -207,15 +210,15 @@ export default function PhotoGallery({
                 )}
                 <span className="w-px h-3 bg-ink-700" />
                 <span className="text-[11px] text-cream-subtle">
-                  {lightboxIndex + 1} / {photos.length}
+                  {lightboxIndex + 1} / {galleryPhotos.length}
                 </span>
                 <span className="w-px h-3 bg-ink-700" />
                 <button
-                  onClick={(e) => { e.stopPropagation(); onScore(photos[lightboxIndex].id) }}
-                  disabled={scoringId === photos[lightboxIndex].id}
+                  onClick={(e) => { e.stopPropagation(); onScore(galleryPhotos[lightboxIndex].id) }}
+                  disabled={scoringId === galleryPhotos[lightboxIndex].id}
                   className="flex items-center gap-1 text-[11px] font-medium text-gold-400 hover:text-gold-300 transition-colors disabled:opacity-50"
                 >
-                  {scoringId === photos[lightboxIndex].id ? (
+                  {scoringId === galleryPhotos[lightboxIndex].id ? (
                     <>
                       <Loader2 className="w-3 h-3 animate-spin" strokeWidth={1.5} />
                       {t('gallery.scoring')}
@@ -223,14 +226,14 @@ export default function PhotoGallery({
                   ) : (
                     <>
                       <RefreshCw className="w-3 h-3" strokeWidth={1.5} />
-                      {photos[lightboxIndex].score !== undefined ? t('gallery.rescore') : t('gallery.review')}
+                      {galleryPhotos[lightboxIndex].score !== undefined ? t('gallery.rescore') : t('gallery.review')}
                     </>
                   )}
                 </button>
               </div>
 
               {/* Review panel */}
-              {photos[lightboxIndex].review && (
+              {galleryPhotos[lightboxIndex].review && (
                 <motion.div
                   initial={{ opacity: 0, y: 8 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -248,9 +251,9 @@ export default function PhotoGallery({
                       expandedReview ? '' : 'line-clamp-3'
                     }`}
                   >
-                    {photos[lightboxIndex].review}
+                    {galleryPhotos[lightboxIndex].review}
                   </p>
-                  {photos[lightboxIndex].review && photos[lightboxIndex].review!.length > 100 && (
+                  {galleryPhotos[lightboxIndex].review && galleryPhotos[lightboxIndex].review!.length > 100 && (
                     <button
                       onClick={(e) => { e.stopPropagation(); setExpandedReview(!expandedReview) }}
                       className="mt-2 flex items-center gap-1 text-[10px] text-cream-subtle hover:text-gold-400 transition-colors"

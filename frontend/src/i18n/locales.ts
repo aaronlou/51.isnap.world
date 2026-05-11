@@ -73,6 +73,8 @@ export type TranslationKey =
   | 'score.rankBelow10Sub'
   | 'score.rankCount'
   | 'score.dimensions'
+  | 'score.accepted'
+  | 'score.notAccepted'
   | 'score.legendary'
   | 'score.legendarySub'
   | 'score.master'
@@ -108,6 +110,7 @@ export type TranslationKey =
   | 'battle.battling'
   | 'battle.noPhoto'
   | 'battle.loadingOpponent'
+  | 'battle.battleOnlyHint'
   | 'battleReveal.title'
   | 'battleReveal.yourLabel'
   | 'battleReveal.opponentLabel'
@@ -205,6 +208,8 @@ const zh: Record<TranslationKey, string> = {
   'score.rankBelow10Sub': '每一位大师都曾是初学者，坚持拍摄！',
   'score.rankCount': '名挑战者中排名第',
   'score.dimensions': '详细点评',
+  'score.accepted': '作品已收录至画廊',
+  'score.notAccepted': '本次作品未达收录标准，期待你的下一次投稿',
   'score.legendary': '传奇之作',
   'score.legendarySub': '堪称传世经典的摄影杰作',
   'score.master': '大师之作',
@@ -240,6 +245,7 @@ const zh: Record<TranslationKey, string> = {
   'battle.battling': 'AI 评审中...',
   'battle.noPhoto': '请先上传一张照片',
   'battle.loadingOpponent': '正在加载对手...',
+  'battle.battleOnlyHint': 'Battle 照片仅用于当前对战，不会被收录',
   'battleReveal.title': '对决结果',
   'battleReveal.yourLabel': '你的作品',
   'battleReveal.opponentLabel': '专业作品',
@@ -338,6 +344,8 @@ const en: Record<TranslationKey, string> = {
   'score.rankBelow10Sub': 'Keep shooting — every master started somewhere!',
   'score.rankCount': 'of',
   'score.dimensions': 'Detailed Review',
+  'score.accepted': 'Photo accepted into gallery',
+  'score.notAccepted': "This photo didn't meet the gallery standard. Keep shooting! ",
   'score.legendary': 'Legendary',
   'score.legendarySub': 'A timeless photographic masterpiece',
   'score.master': 'Masterpiece',
@@ -373,6 +381,7 @@ const en: Record<TranslationKey, string> = {
   'battle.battling': 'AI Judging...',
   'battle.noPhoto': 'Please upload a photo first',
   'battle.loadingOpponent': 'Loading opponent...',
+  'battle.battleOnlyHint': 'Battle photos are temporary and not saved to gallery',
   'battleReveal.title': 'Battle Result',
   'battleReveal.yourLabel': 'Your Photo',
   'battleReveal.opponentLabel': 'Professional',

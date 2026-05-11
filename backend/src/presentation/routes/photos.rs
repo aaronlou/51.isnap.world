@@ -30,6 +30,7 @@ pub async fn upload_photo(
 
     let mut filename = String::new();
     let mut file_bytes: Option<Bytes> = None;
+    let mut is_battle = false;
 
     while let Some(field) = multipart
         .next_field()
@@ -58,6 +59,9 @@ pub async fn upload_photo(
                 })?;
             info!("File size: {} bytes", data.len());
             file_bytes = Some(data);
+        } else if name == "is_battle" {
+            let val = field.text().await.unwrap_or_default();
+            is_battle = val == "1" || val == "true";
         }
     }
 
@@ -65,7 +69,7 @@ pub async fn upload_photo(
 
     let photo = state
         .upload_photo
-        .execute(filename, file_bytes.to_vec())
+        .execute(filename, file_bytes.to_vec(), is_battle)
         .await?;
     Ok((axum::http::StatusCode::CREATED, Json(photo)))
 }

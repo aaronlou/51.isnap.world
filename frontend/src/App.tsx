@@ -23,6 +23,7 @@ export default function App() {
   const [donateNotice, setDonateNotice] = useState<string | null>(null)
   const {
     photos,
+    setPhotos,
     isLoading: isLoadingPhotos,
     isUploading,
     scoringId,
@@ -37,6 +38,14 @@ export default function App() {
   const { leaderboard, isLoading: isLoadingLeaderboard, loadLeaderboard } = useLeaderboard()
 
   const { battleResult, isBattling, battlingId, handleBattle, clearBattle } = useBattle()
+
+  const handleCloseBattle = () => {
+    // Battle 对战完成后，自动清理本地列表中的 battle 临时照片
+    if (battleResult?.user_photo.is_battle) {
+      setPhotos(prev => prev.filter(p => p.id !== battleResult.user_photo_id))
+    }
+    clearBattle()
+  }
 
   const tabs = useMemo(() => [
     { id: 'upload' as Tab, label: t('tab.upload'), icon: Camera },
@@ -99,12 +108,18 @@ export default function App() {
     }
   }, [leaderboard, scoreResult])
 
-  const onUpload = async (file: File) => {
+  // Upload tab：上传 gallery 照片并自动评分
+  const onUploadAndScore = async (file: File) => {
     setScoredRank(null)
-    const newPhoto = await handleUpload(file)
+    const newPhoto = await handleUpload(file, false)
     if (newPhoto) {
       setTimeout(() => handleScore(newPhoto.id), 400)
     }
+  }
+
+  // Battle tab：上传 battle 照片（不评分、不收录到 gallery）
+  const onUploadOnly = async (file: File) => {
+    await handleUpload(file, true)
   }
 
   const handleCloseScore = () => {
@@ -112,7 +127,8 @@ export default function App() {
     setScoredRank(null)
   }
 
-  const scoredCount = photos.filter((p) => p.score !== undefined).length
+  const galleryPhotos = photos.filter((p) => !p.is_battle)
+  const scoredCount = galleryPhotos.filter((p) => p.score !== undefined).length
 
   return (
     <div className="min-h-screen bg-ink-950 text-cream grain">
@@ -188,7 +204,7 @@ export default function App() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              <UploadZone onUpload={onUpload} isUploading={isUploading} />
+              <UploadZone onUpload={onUploadAndScore} isUploading={isUploading} />
             </motion.div>
           )}
 
@@ -237,7 +253,7 @@ export default function App() {
                 onBattle={handleBattle}
                 isBattling={isBattling}
                 battlingId={battlingId}
-                onUpload={onUpload}
+                onUpload={onUploadOnly}
                 isUploading={isUploading}
               />
             </motion.div>
@@ -328,6 +344,7 @@ export default function App() {
             engine={photos.find((p) => p.id === scoreResult.id)?.engine}
             rank={scoredRank}
             totalScored={leaderboard.length}
+            accepted={scoreResult.accepted}
             onClose={handleCloseScore}
             onViewLeaderboard={() => {
               handleCloseScore()
@@ -342,7 +359,7 @@ export default function App() {
         {battleResult && (
           <BattleReveal
             result={battleResult}
-            onClose={clearBattle}
+            onClose={handleCloseBattle}
           />
         )}
       </AnimatePresence>
@@ -371,7 +388,7 @@ export default function App() {
             {t('app.footer')}
           </p>
           <p className="text-[11px] text-cream-subtle">
-            {photos.length} {t('app.footerCount')} · {scoredCount} {t('app.scoredCount')}
+            {galleryPhotos.length} {t('app.footerCount')} · {scoredCount} {t('app.scoredCount')}
           </p>
         </div>
       </footer>

@@ -39,6 +39,8 @@ pub struct ScoreResultDto {
     pub score: f32,
     pub review: String,
     pub engine: Option<String>,
+    /// 是否达到画廊收录标准
+    pub accepted: bool,
 }
 
 /// 对决请求 DTO（可选传递对手信息）

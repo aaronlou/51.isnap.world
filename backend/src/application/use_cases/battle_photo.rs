@@ -199,6 +199,25 @@ impl<R: PhotoRepository> BattlePhotoUseCase<R> {
         // 6. 构建 DTO
         let user_photo_dto = PhotoDto::from_photo(&photo, &self.base_url);
 
+        // 7. 若为 Battle 模式上传的临时照片，对战完成后自动清理
+        let is_battle = photo.is_battle;
+        if is_battle {
+            self.repository.delete(&id).await.ok();
+            tracing::info!("Battle photo {} cleaned up after battle", photo_id);
+
+            let storage_path = photo.storage_path(&self.upload_dir);
+            if storage_path.exists() {
+                let _ = std::fs::remove_file(&storage_path);
+            }
+            let thumb_path = self
+                .upload_dir
+                .join("thumbnails")
+                .join(format!("{}.jpg", photo.id.as_str()));
+            if thumb_path.exists() {
+                let _ = std::fs::remove_file(&thumb_path);
+            }
+        }
+
         Ok(BattleResultDto {
             user_photo_id: photo_id.to_string(),
             user_photo: user_photo_dto,

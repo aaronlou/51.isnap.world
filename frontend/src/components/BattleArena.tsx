@@ -242,6 +242,7 @@ export default function BattleArena({
                     </div>
                     <p className="text-cream text-sm font-medium mb-1">{t('battle.dropLabel')}</p>
                     <p className="text-cream-subtle text-xs">{t('battle.formatHint')}</p>
+                    <p className="text-cream-subtle/50 text-[10px] mt-2">{t('battle.battleOnlyHint')}</p>
                   </>
                 )}
               </div>
@@ -297,6 +298,9 @@ export default function BattleArena({
                     <Upload className="w-3 h-3" strokeWidth={1.5} />
                     {t('battle.uploadNew')}
                   </button>
+                  <span className="absolute bottom-3 right-3 text-[10px] text-cream-subtle/40">
+                    {t('battle.battleOnlyHint')}
+                  </span>
                   <input
                     ref={fileInputRef}
                     type="file"

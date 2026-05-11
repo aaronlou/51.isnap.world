@@ -23,10 +23,10 @@ export function usePhotos() {
 
   // 延迟加载：由调用方（App）在切换到 gallery tab 时触发
 
-  const handleUpload = async (file: File): Promise<Photo | null> => {
+  const handleUpload = async (file: File, isBattle = false): Promise<Photo | null> => {
     setIsUploading(true);
     try {
-      const newPhoto = await uploadPhoto(file);
+      const newPhoto = await uploadPhoto(file, isBattle);
       setPhotos(prev => [newPhoto, ...prev]);
       return newPhoto;
     } catch (err: any) {
@@ -44,13 +44,19 @@ export function usePhotos() {
       const result = await scorePhoto(id);
       setScoreResult({ ...result, id });
 
-      setPhotos(prev =>
-        prev.map(p =>
-          p.id === id
-            ? { ...p, score: result.score, review: result.review, engine: result.engine }
-            : p
-        )
-      );
+      if (result.accepted === false) {
+        // 未达标：从本地列表移除（后端已删除文件和数据库记录）
+        setPhotos(prev => prev.filter(p => p.id !== id));
+      } else {
+        // 达标：更新评分信息
+        setPhotos(prev =>
+          prev.map(p =>
+            p.id === id
+              ? { ...p, score: result.score, review: result.review, engine: result.engine }
+              : p
+          )
+        );
+      }
       return result;
     } catch (err: any) {
       console.error('Scoring failed:', err);
@@ -76,6 +82,7 @@ export function usePhotos() {
 
   return {
     photos,
+    setPhotos,
     isLoading,
     isUploading,
     scoringId,
