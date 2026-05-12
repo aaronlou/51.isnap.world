@@ -438,6 +438,7 @@ export default function App() {
             accepted={scoreResult.accepted}
             personalStats={scoreResult.personal_stats}
             photoId={scoreResult.id}
+            photoUrl={photos.find((p) => p.id === scoreResult.id)?.url}
             onClose={handleCloseScore}
             onViewLeaderboard={() => {
               handleCloseScore()

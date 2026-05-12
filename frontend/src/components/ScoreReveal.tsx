@@ -16,6 +16,7 @@ interface ScoreRevealProps {
   accepted?: boolean
   personalStats?: PersonalStats
   photoId?: string
+  photoUrl?: string
   onClose: () => void
   onViewLeaderboard?: () => void
 }
@@ -79,6 +80,7 @@ export default function ScoreReveal({
   accepted,
   personalStats,
   photoId,
+  photoUrl,
   onClose,
   onViewLeaderboard,
 }: ScoreRevealProps) {
@@ -459,7 +461,7 @@ export default function ScoreReveal({
                   transition={{ duration: 0.3 }}
                   className="overflow-hidden"
                 >
-                  <MentorChat photoId={photoId} />
+                  <MentorChat photoId={photoId} photoUrl={photoUrl} />
                 </motion.div>
               )}
             </AnimatePresence>

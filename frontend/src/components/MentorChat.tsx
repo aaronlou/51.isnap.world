@@ -9,9 +9,10 @@ import DonateNudge from './DonateNudge';
 
 interface MentorChatProps {
   photoId: string;
+  photoUrl?: string;
 }
 
-export default function MentorChat({ photoId }: MentorChatProps) {
+export default function MentorChat({ photoId, photoUrl }: MentorChatProps) {
   const { t } = useLocale();
   const [messages, setMessages] = useState<MentorMessageType[]>([]);
   const [input, setInput] = useState('');
@@ -100,6 +101,18 @@ export default function MentorChat({ photoId }: MentorChatProps) {
           {t('mentor.title')}
         </span>
       </div>
+
+      {/* Current Photo Preview */}
+      {photoUrl && (
+        <div className="mb-4 rounded-xl overflow-hidden border border-ink-700/30 bg-ink-800/30">
+          <img
+            src={photoUrl}
+            alt="Current photo"
+            className="w-full h-28 sm:h-36 object-cover"
+            loading="lazy"
+          />
+        </div>
+      )}
 
       {/* Donate Nudge — 超过额度后弹出一次，可关闭 */}
       {!isDonor && showDonateNudge && (
