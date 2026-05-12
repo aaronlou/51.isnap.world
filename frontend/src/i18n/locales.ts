@@ -307,7 +307,7 @@ const zh: Record<TranslationKey, string> = {
   'mentor.thinking': '导师正在思考...',
   'mentor.placeholder': '例如：如何改善这张的构图？',
   'mentor.limitReached': '今日免费次数已用完',
-  'mentor.limitReachedHint': '支持我们，解锁无限畅聊 ✨',
+  'mentor.limitReachedHint': '导师的电费快不够了 😅 支持一下可无限畅聊',
   'mentor.hint': '每日 3 次免费追问，支持我们可无限畅聊',
   'mentor.error': '发送失败，请重试',
   'mentor.unlimited': '无限畅聊',
@@ -315,9 +315,9 @@ const zh: Record<TranslationKey, string> = {
   'nudge.uploadTitle': '你的快门按得飞快！',
   'nudge.uploadBody': '今天已经上传了 3 张照片，看来你是个摄影狂热分子。愿意打赏以便让本产品可以长期维持下去吗？',
   'nudge.uploadCta': '支持一下',
-  'nudge.mentorTitle': '导师也需要喝咖啡',
-  'nudge.mentorBody': '今日的免费导师对话次数已用完。AI 导师的算力不是免费的，但它很乐意继续陪你聊——如果你愿意支持的话。',
-  'nudge.mentorCta': '解锁无限对话',
+  'nudge.mentorTitle': '喜欢这位导师吗？',
+  'nudge.mentorBody': '每次点评都要调用 AI 模型，服务器成本不低。如果你觉得这些建议对你的摄影有帮助，可以随意支持一下——金额不限，心意到了就好。',
+  'nudge.mentorCta': '随意支持',
   'nudge.dismiss': '暂时不用',
 }
 
@@ -468,7 +468,7 @@ const en: Record<TranslationKey, string> = {
   'mentor.thinking': 'Mentor is thinking...',
   'mentor.placeholder': 'e.g. How to improve the composition?',
   'mentor.limitReached': 'Daily free limit reached',
-  'mentor.limitReachedHint': 'Support us to unlock unlimited chats ✨',
+  'mentor.limitReachedHint': 'Running low on compute power 😅 Support us for unlimited chats',
   'mentor.hint': '3 free questions daily. Support us for unlimited access.',
   'mentor.error': 'Failed to send. Please try again.',
   'mentor.unlimited': 'Unlimited',
@@ -476,9 +476,9 @@ const en: Record<TranslationKey, string> = {
   'nudge.uploadTitle': 'Your shutter is on fire!',
   'nudge.uploadBody': 'You\'ve uploaded 3 photos today — you must be a photography enthusiast. Would you like to donate to help keep this product alive?',
   'nudge.uploadCta': 'Support Us',
-  'nudge.mentorTitle': 'The mentor needs coffee too',
-  'nudge.mentorBody': 'Your free mentor chats for today are used up. AI compute isn\'t free, but your mentor would love to keep chatting — if you\'re willing to support.',
-  'nudge.mentorCta': 'Unlock Unlimited',
+  'nudge.mentorTitle': 'Enjoying the mentor?',
+  'nudge.mentorBody': 'Each response calls an AI model, which costs us to run. If these tips are helping your photography, any support is appreciated — no pressure.',
+  'nudge.mentorCta': 'Support any amount',
   'nudge.dismiss': 'Not now',
 }
 

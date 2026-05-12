@@ -64,8 +64,8 @@ pub async fn post_mentor_chat(
     let is_donor = state.repository.has_donated(&uid).await.unwrap_or(false);
     let (_, usage_today) = state.repository.get_mentor_chat_usage(&uid).await?;
     if !is_donor && usage_today >= DAILY_MENTOR_LIMIT {
-        return Err(ApiError::External(
-            "DAILY_LIMIT_REACHED: 今日的免费导师对话次数已用完。支持我们即可无限畅聊！".to_string()
+        return Err(ApiError::RateLimited(
+            "DAILY_LIMIT_REACHED".to_string()
         ));
     }
 

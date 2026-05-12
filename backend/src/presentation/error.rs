@@ -20,6 +20,8 @@ pub enum ApiError {
     Domain(DomainError),
     /// 外部服务错误（如 Stripe API 调用失败）
     External(String),
+    /// 配额/频率限制
+    RateLimited(String),
 }
 
 impl From<DomainError> for ApiError {
@@ -32,6 +34,7 @@ impl IntoResponse for ApiError {
     fn into_response(self) -> Response {
         let (status, error_msg) = match self {
             ApiError::External(msg) => (StatusCode::BAD_GATEWAY, msg),
+            ApiError::RateLimited(msg) => (StatusCode::TOO_MANY_REQUESTS, msg),
             ApiError::Domain(err) => match err {
                 DomainError::FileTooLarge { .. } => {
                     (StatusCode::PAYLOAD_TOO_LARGE, err.to_string())
