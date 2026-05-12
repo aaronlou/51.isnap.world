@@ -1,9 +1,10 @@
 import { useState, useEffect, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { X, Star, Quote, ChevronDown, ChevronUp, Sparkles, Crown, Trophy, Swords, ArrowUp, TrendingUp, TrendingDown, Award } from 'lucide-react'
+import { X, Star, Quote, ChevronDown, ChevronUp, Sparkles, Crown, Trophy, Swords, ArrowUp, TrendingUp, TrendingDown, Award, MessageCircle } from 'lucide-react'
 import { useLocale } from '@/i18n/LocaleContext'
 import type { TranslationKey } from '@/i18n/locales'
 import type { PersonalStats } from '@/types/photo'
+import MentorChat from './MentorChat'
 
 interface ScoreRevealProps {
   score: number
@@ -14,6 +15,7 @@ interface ScoreRevealProps {
   totalScored?: number
   accepted?: boolean
   personalStats?: PersonalStats
+  photoId?: string
   onClose: () => void
   onViewLeaderboard?: () => void
 }
@@ -76,6 +78,7 @@ export default function ScoreReveal({
   totalScored,
   accepted,
   personalStats,
+  photoId,
   onClose,
   onViewLeaderboard,
 }: ScoreRevealProps) {
@@ -83,6 +86,7 @@ export default function ScoreReveal({
   const [displayScore, setDisplayScore] = useState(0)
   const [phase, setPhase] = useState<'counting' | 'revealed'>('counting')
   const [showAttributes, setShowAttributes] = useState(false)
+  const [showMentor, setShowMentor] = useState(false)
 
   useEffect(() => {
     const duration = 1800
@@ -421,6 +425,41 @@ export default function ScoreReveal({
                       </AnimatePresence>
                     </div>
                   )}
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Mentor Chat Toggle */}
+            <AnimatePresence>
+              {phase === 'revealed' && photoId && (
+                <motion.div
+                  initial={{ opacity: 0, y: 8 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7 }}
+                  className="mt-6 text-center"
+                >
+                  <button
+                    onClick={() => setShowMentor(!showMentor)}
+                    className="inline-flex items-center gap-1.5 text-[11px] font-medium tracking-[0.1em] uppercase text-gold-400 hover:text-gold-300 transition-colors"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5" strokeWidth={1.5} />
+                    {showMentor ? t('mentor.hide') : t('mentor.ask')}
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
+            {/* Mentor Chat */}
+            <AnimatePresence>
+              {showMentor && photoId && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="overflow-hidden"
+                >
+                  <MentorChat photoId={photoId} />
                 </motion.div>
               )}
             </AnimatePresence>

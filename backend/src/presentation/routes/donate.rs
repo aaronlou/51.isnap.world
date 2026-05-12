@@ -1,5 +1,6 @@
 use axum::{
     extract::State,
+    http::HeaderMap,
     response::{IntoResponse, Json},
 };
 use serde::{Deserialize, Serialize};
@@ -33,6 +34,7 @@ struct StripeCheckoutSessionResponse {
 
 pub async fn create_checkout_session(
     _state: State<Arc<AppState>>,
+    headers: HeaderMap,
     Json(payload): Json<CreateDonationRequest>,
 ) -> Result<impl IntoResponse, ApiError> {
     let secret_key = std::env::var("STRIPE_SECRET_KEY")
@@ -42,12 +44,19 @@ pub async fn create_checkout_session(
         .or_else(|_| std::env::var("BASE_URL"))
         .unwrap_or_else(|_| "http://localhost:3001".to_string());
 
+    // 提取匿名用户 ID，用于关联捐赠记录
+    let user_id = headers
+        .get("X-User-ID")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.to_string())
+        .unwrap_or_default();
+
     // Stripe 要求金额至少为 50 分
     let amount = payload.amount.max(50);
     let currency = payload.currency.to_lowercase();
 
     // Stripe API 需要 form-encoded 格式
-    let params: Vec<(String, String)> = vec![
+    let mut params: Vec<(String, String)> = vec![
         ("mode".to_string(), "payment".to_string()),
         ("success_url".to_string(), format!("{}?donate=success", frontend_url)),
         ("cancel_url".to_string(), format!("{}?donate=cancel", frontend_url)),
@@ -64,6 +73,11 @@ pub async fn create_checkout_session(
         ),
         ("line_items[0][quantity]".to_string(), "1".to_string()),
     ];
+
+    // 将用户 ID 绑定到 Stripe Session，webhook 回调时用于识别捐赠者
+    if !user_id.is_empty() {
+        params.push(("client_reference_id".to_string(), user_id));
+    }
 
     let client = reqwest::Client::new();
     let resp = client

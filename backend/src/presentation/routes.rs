@@ -4,5 +4,7 @@ pub mod health;
 pub mod leaderboard;
 pub mod locale;
 pub mod me;
+pub mod mentor;
 pub mod photos;
 pub mod unsplash;
+pub mod webhook;

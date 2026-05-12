@@ -140,6 +140,24 @@ export type TranslationKey =
   | 'donate.footer'
   | 'donate.errorMin'
   | 'donate.errorCreate'
+  | 'mentor.title'
+  | 'mentor.ask'
+  | 'mentor.hide'
+  | 'mentor.remaining'
+  | 'mentor.thinking'
+  | 'mentor.placeholder'
+  | 'mentor.limitReached'
+  | 'mentor.hint'
+  | 'mentor.error'
+  | 'nudge.uploadTitle'
+  | 'nudge.uploadBody'
+  | 'nudge.uploadCta'
+  | 'nudge.mentorTitle'
+  | 'nudge.mentorBody'
+  | 'nudge.mentorCta'
+  | 'nudge.dismiss'
+  | 'mentor.unlimited'
+  | 'mentor.hintDonor'
 
 const zh: Record<TranslationKey, string> = {
   'app.title': '摄影大乱斗',
@@ -281,6 +299,24 @@ const zh: Record<TranslationKey, string> = {
   'donate.footer': '由 Stripe 提供安全支付保障 · 支持 Visa / Mastercard / 支付宝',
   'donate.errorMin': '最低支持',
   'donate.errorCreate': '创建支付会话失败，请稍后重试',
+  'mentor.title': 'AI 摄影导师',
+  'mentor.ask': '向 AI 导师提问',
+  'mentor.hide': '收起对话',
+  'mentor.remaining': '今日剩余',
+  'mentor.thinking': '导师正在思考...',
+  'mentor.placeholder': '例如：如何改善这张的构图？',
+  'mentor.limitReached': '今日免费次数已用完',
+  'mentor.hint': '每日 3 次免费追问，支持我们可无限畅聊',
+  'mentor.error': '发送失败，请重试',
+  'mentor.unlimited': '无限畅聊',
+  'mentor.hintDonor': '感谢你的支持，AI 导师已为你解除所有限制',
+  'nudge.uploadTitle': '你的快门按得飞快！',
+  'nudge.uploadBody': '今天已经上传了 3 张照片，看来你是个摄影狂热分子。愿意打赏以便让本产品可以长期维持下去吗？',
+  'nudge.uploadCta': '支持一下',
+  'nudge.mentorTitle': '导师也需要喝咖啡',
+  'nudge.mentorBody': '今日的免费导师对话次数已用完。AI 导师的算力不是免费的，但它很乐意继续陪你聊——如果你愿意支持的话。',
+  'nudge.mentorCta': '解锁无限对话',
+  'nudge.dismiss': '暂时不用',
 }
 
 const en: Record<TranslationKey, string> = {
@@ -423,6 +459,24 @@ const en: Record<TranslationKey, string> = {
   'donate.footer': 'Secure payments by Stripe · Visa / Mastercard / Alipay',
   'donate.errorMin': 'Minimum is',
   'donate.errorCreate': 'Failed to create payment session. Please try again.',
+  'mentor.title': 'AI Photo Mentor',
+  'mentor.ask': 'Ask AI Mentor',
+  'mentor.hide': 'Hide Chat',
+  'mentor.remaining': 'Remaining today',
+  'mentor.thinking': 'Mentor is thinking...',
+  'mentor.placeholder': 'e.g. How to improve the composition?',
+  'mentor.limitReached': 'Daily free limit reached',
+  'mentor.hint': '3 free questions daily. Support us for unlimited access.',
+  'mentor.error': 'Failed to send. Please try again.',
+  'mentor.unlimited': 'Unlimited',
+  'mentor.hintDonor': 'Thanks for your support — all limits removed.',
+  'nudge.uploadTitle': 'Your shutter is on fire!',
+  'nudge.uploadBody': 'You\'ve uploaded 3 photos today — you must be a photography enthusiast. Would you like to donate to help keep this product alive?',
+  'nudge.uploadCta': 'Support Us',
+  'nudge.mentorTitle': 'The mentor needs coffee too',
+  'nudge.mentorBody': 'Your free mentor chats for today are used up. AI compute isn\'t free, but your mentor would love to keep chatting — if you\'re willing to support.',
+  'nudge.mentorCta': 'Unlock Unlimited',
+  'nudge.dismiss': 'Not now',
 }
 
 export const translations: Record<Locale, Record<TranslationKey, string>> = { zh, en }

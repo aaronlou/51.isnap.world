@@ -22,3 +22,6 @@ thiserror = "1.0"
 rusqlite = { version = "0.32", features = ["bundled", "chrono"] }
 async-trait = "0.1"
 dotenvy = "0.15"
+hmac = "0.12"
+sha2 = "0.10"
+hex = "0.4"

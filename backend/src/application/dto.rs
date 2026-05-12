@@ -90,3 +90,36 @@ pub struct BattleResultDto {
     pub comparison: String,
     pub engine: String,
 }
+
+/// 导师对话消息 DTO
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct MentorChatMessageDto {
+    pub role: String,
+    pub content: String,
+    pub created_at: String,
+}
+
+/// 导师对话请求 DTO
+#[derive(Debug, Clone, Deserialize)]
+pub struct MentorChatRequestDto {
+    pub message: String,
+}
+
+/// 导师对话响应 DTO
+#[derive(Debug, Clone, Serialize)]
+pub struct MentorChatResponseDto {
+    pub reply: String,
+    pub remaining: i32,
+    pub messages: Vec<MentorChatMessageDto>,
+}
+
+/// 用户配额 DTO
+#[derive(Debug, Clone, Serialize)]
+pub struct QuotaDto {
+    pub uploads_today: i32,
+    pub upload_limit: i32,
+    pub mentor_messages_today: i32,
+    pub mentor_message_limit: i32,
+    /// 是否已捐赠（捐赠用户不受配额限制）
+    pub is_donor: bool,
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { fetchPhotos, uploadPhoto, scorePhoto, deletePhoto } from '@/api/photos';
+import { fetchQuota } from '@/api/me';
 import type { Photo, ScoreResult } from '@/types/photo';
 
 export function usePhotos() {
@@ -8,6 +9,7 @@ export function usePhotos() {
   const [isUploading, setIsUploading] = useState(false);
   const [scoringId, setScoringId] = useState<string | null>(null);
   const [scoreResult, setScoreResult] = useState<ScoreResult | null>(null);
+  const [showUploadNudge, setShowUploadNudge] = useState(false);
 
   const loadPhotos = useCallback(async () => {
     setIsLoading(true);
@@ -24,6 +26,18 @@ export function usePhotos() {
   // 延迟加载：由调用方（App）在切换到 gallery tab 时触发
 
   const handleUpload = async (file: File, isBattle = false): Promise<Photo | null> => {
+    // 非 battle 上传检查配额（捐赠用户不弹窗）
+    if (!isBattle) {
+      try {
+        const quota = await fetchQuota();
+        if (!quota.is_donor && quota.uploads_today >= quota.upload_limit) {
+          setShowUploadNudge(true);
+        }
+      } catch {
+        // 静默失败，不影响上传
+      }
+    }
+
     setIsUploading(true);
     try {
       const newPhoto = await uploadPhoto(file, isBattle);
@@ -91,6 +105,8 @@ export function usePhotos() {
     handleUpload,
     handleScore,
     handleDelete,
+    showUploadNudge,
+    dismissUploadNudge: () => setShowUploadNudge(false),
     loadPhotos,
   };
 }

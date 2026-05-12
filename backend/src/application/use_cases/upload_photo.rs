@@ -32,6 +32,10 @@ impl<R: PhotoRepository, S: FileStorage> UploadPhotoUseCase<R, S> {
         }
     }
 
+    pub fn upload_dir(&self) -> &std::path::PathBuf {
+        &self.upload_dir
+    }
+
     pub async fn execute(&self, filename: String, data: Vec<u8>, is_battle: bool, user_id: Option<String>) -> Result<PhotoDto, DomainError> {
         // 1. 领域层验证（值对象封装验证逻辑）
         let file = FileUpload::validate(filename, data)?;

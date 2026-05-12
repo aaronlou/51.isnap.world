@@ -5,6 +5,14 @@ export interface MeResponse {
   nickname: string;
 }
 
+export interface QuotaResponse {
+  uploads_today: number;
+  upload_limit: number;
+  mentor_messages_today: number;
+  mentor_message_limit: number;
+  is_donor: boolean;
+}
+
 export async function fetchMe(): Promise<MeResponse | null> {
   try {
     const res = await apiClient.get<MeResponse>('/api/me');
@@ -19,5 +27,10 @@ export async function fetchMe(): Promise<MeResponse | null> {
 
 export async function updateNickname(nickname: string): Promise<{ nickname: string }> {
   const res = await apiClient.patch<{ nickname: string }>('/api/me', { nickname });
+  return res.data;
+}
+
+export async function fetchQuota(): Promise<QuotaResponse> {
+  const res = await apiClient.get<QuotaResponse>('/api/me/quota');
   return res.data;
 }

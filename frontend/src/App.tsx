@@ -8,6 +8,7 @@ import PhotoGallery from '@/components/PhotoGallery'
 import BattleArena from '@/components/BattleArena'
 import BattleReveal from '@/components/BattleReveal'
 import DonateModal from '@/components/DonateModal'
+import DonateNudge from '@/components/DonateNudge'
 import LanguageSwitch from '@/components/LanguageSwitch'
 import { usePhotos } from '@/hooks/usePhotos'
 import { useLeaderboard } from '@/hooks/useLeaderboard'
@@ -34,6 +35,8 @@ export default function App() {
     handleUpload,
     handleScore,
     handleDelete,
+    showUploadNudge,
+    dismissUploadNudge,
     loadPhotos,
   } = usePhotos()
 
@@ -287,6 +290,11 @@ export default function App() {
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.35, ease: [0.25, 0.1, 0.25, 1] }}
             >
+              <DonateNudge
+                isOpen={showUploadNudge}
+                onClose={dismissUploadNudge}
+                type="upload"
+              />
               <UploadZone onUpload={onUploadAndScore} isUploading={isUploading} />
             </motion.div>
           )}
@@ -429,6 +437,7 @@ export default function App() {
             totalScored={leaderboard.length}
             accepted={scoreResult.accepted}
             personalStats={scoreResult.personal_stats}
+            photoId={scoreResult.id}
             onClose={handleCloseScore}
             onViewLeaderboard={() => {
               handleCloseScore()

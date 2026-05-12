@@ -63,6 +63,45 @@ impl SqlitePhotoRepository {
                 "ALTER TABLE photos ADD COLUMN user_id TEXT",
                 [],
             );
+
+            // AI 导师对话表：每个用户每张照片一个对话线程
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS mentor_chats (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    photo_id TEXT NOT NULL,
+                    messages TEXT NOT NULL DEFAULT '[]',
+                    message_count INTEGER DEFAULT 0,
+                    created_at TEXT NOT NULL,
+                    updated_at TEXT NOT NULL,
+                    UNIQUE(user_id, photo_id)
+                )",
+                [],
+            )?;
+
+            // 导师对话每日配额追踪
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS mentor_chat_daily_usage (
+                    user_id TEXT PRIMARY KEY,
+                    date TEXT NOT NULL,
+                    message_count INTEGER DEFAULT 0
+                )",
+                [],
+            )?;
+
+            // 捐赠记录表
+            conn.execute(
+                "CREATE TABLE IF NOT EXISTS donations (
+                    id TEXT PRIMARY KEY,
+                    user_id TEXT NOT NULL,
+                    stripe_session_id TEXT,
+                    amount INTEGER NOT NULL,
+                    currency TEXT NOT NULL,
+                    created_at TEXT NOT NULL
+                )",
+                [],
+            )?;
+
             Ok(())
         })
     }
@@ -218,6 +257,172 @@ impl SqlitePhotoRepository {
                 .map_err(|e| rusqlite::Error::FromSqlConversionFailure(0, rusqlite::types::Type::Text, Box::new(e)))
         })
     }
+
+    /// 查询某用户今日上传次数（所有非 battle 照片）
+    pub async fn count_uploads_today(&self, user_id: &str) -> Result<i32, DomainError> {
+        self.with_conn(|conn| {
+            let today = Utc::now().format("%Y-%m-%d").to_string();
+            let mut stmt = conn.prepare(
+                "SELECT COUNT(*) FROM photos
+                 WHERE user_id = ?1 AND is_battle = 0
+                 AND date(uploaded_at) = date(?2)"
+            )?;
+            let count: i32 = stmt.query_row([user_id, &today], |row| row.get(0))?;
+            Ok(count)
+        })
+    }
+
+    /// 获取或创建导师对话记录
+    pub async fn get_or_create_mentor_chat(
+        &self,
+        user_id: &str,
+        photo_id: &str,
+    ) -> Result<MentorChatRecord, DomainError> {
+        self.with_conn(|conn| {
+            let mut stmt = conn.prepare(
+                "SELECT id, user_id, photo_id, messages, message_count, created_at, updated_at
+                 FROM mentor_chats WHERE user_id = ?1 AND photo_id = ?2"
+            )?;
+            let mut rows = stmt.query([user_id, photo_id])?;
+            if let Some(row) = rows.next()? {
+                return Ok(MentorChatRecord {
+                    id: row.get(0)?,
+                    user_id: row.get(1)?,
+                    photo_id: row.get(2)?,
+                    messages: row.get(3)?,
+                    message_count: row.get(4)?,
+                    created_at: row.get(5)?,
+                    updated_at: row.get(6)?,
+                });
+            }
+
+            // 创建新记录
+            let id = uuid::Uuid::new_v4().to_string();
+            let now = Utc::now().to_rfc3339();
+            conn.execute(
+                "INSERT INTO mentor_chats (id, user_id, photo_id, messages, message_count, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, '[]', 0, ?4, ?4)",
+                params![&id, user_id, photo_id, &now],
+            )?;
+            Ok(MentorChatRecord {
+                id,
+                user_id: user_id.to_string(),
+                photo_id: photo_id.to_string(),
+                messages: "[]".to_string(),
+                message_count: 0,
+                created_at: now.clone(),
+                updated_at: now,
+            })
+        })
+    }
+
+    /// 追加导师对话消息
+    pub async fn append_mentor_chat_message(
+        &self,
+        user_id: &str,
+        photo_id: &str,
+        messages_json: &str,
+        message_count: i32,
+    ) -> Result<(), DomainError> {
+        self.with_conn(|conn| {
+            let now = Utc::now().to_rfc3339();
+            conn.execute(
+                "INSERT INTO mentor_chats (id, user_id, photo_id, messages, message_count, created_at, updated_at)
+                 VALUES ((SELECT COALESCE((SELECT id FROM mentor_chats WHERE user_id = ?1 AND photo_id = ?2), lower(hex(randomblob(16))))),
+                         ?1, ?2, ?3, ?4, COALESCE((SELECT created_at FROM mentor_chats WHERE user_id = ?1 AND photo_id = ?2), ?5), ?5)
+                 ON CONFLICT(user_id, photo_id) DO UPDATE SET
+                    messages = excluded.messages,
+                    message_count = excluded.message_count,
+                    updated_at = excluded.updated_at",
+                params![user_id, photo_id, messages_json, message_count, now],
+            )?;
+            Ok(())
+        })
+    }
+
+    /// 获取导师对话每日使用量
+    pub async fn get_mentor_chat_usage(&self, user_id: &str) -> Result<(String, i32), DomainError> {
+        self.with_conn(|conn| {
+            let today = Utc::now().format("%Y-%m-%d").to_string();
+            let mut stmt = conn.prepare(
+                "SELECT date, message_count FROM mentor_chat_daily_usage WHERE user_id = ?1"
+            )?;
+            let mut rows = stmt.query([user_id])?;
+            if let Some(row) = rows.next()? {
+                let date: String = row.get(0)?;
+                let count: i32 = row.get(1)?;
+                // 如果日期不是今天，重置
+                if date != today {
+                    conn.execute(
+                        "UPDATE mentor_chat_daily_usage SET date = ?1, message_count = 0 WHERE user_id = ?2",
+                        params![&today, user_id],
+                    )?;
+                    return Ok((today, 0));
+                }
+                return Ok((date, count));
+            }
+            // 创建记录
+            conn.execute(
+                "INSERT INTO mentor_chat_daily_usage (user_id, date, message_count) VALUES (?1, ?2, 0)",
+                params![user_id, &today],
+            )?;
+            Ok((today, 0))
+        })
+    }
+
+    /// 增加导师对话每日使用量
+    pub async fn increment_mentor_chat_usage(&self, user_id: &str) -> Result<i32, DomainError> {
+        self.with_conn(|conn| {
+            let today = Utc::now().format("%Y-%m-%d").to_string();
+            conn.execute(
+                "INSERT INTO mentor_chat_daily_usage (user_id, date, message_count)
+                 VALUES (?1, ?2, 1)
+                 ON CONFLICT(user_id) DO UPDATE SET
+                    date = CASE WHEN date = excluded.date THEN date ELSE excluded.date END,
+                    message_count = CASE WHEN date = excluded.date THEN message_count + 1 ELSE 1 END",
+                params![user_id, &today],
+            )?;
+            let count: i32 = conn.query_row(
+                "SELECT message_count FROM mentor_chat_daily_usage WHERE user_id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )?;
+            Ok(count)
+        })
+    }
+
+    /// 记录捐赠
+    pub async fn record_donation(
+        &self,
+        user_id: &str,
+        stripe_session_id: &str,
+        amount: i64,
+        currency: &str,
+    ) -> Result<(), DomainError> {
+        self.with_conn(|conn| {
+            let id = uuid::Uuid::new_v4().to_string();
+            let now = Utc::now().to_rfc3339();
+            conn.execute(
+                "INSERT INTO donations (id, user_id, stripe_session_id, amount, currency, created_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6)
+                 ON CONFLICT DO NOTHING",
+                params![id, user_id, stripe_session_id, amount, currency, now],
+            )?;
+            Ok(())
+        })
+    }
+
+    /// 检查用户是否捐赠过
+    pub async fn has_donated(&self, user_id: &str) -> Result<bool, DomainError> {
+        self.with_conn(|conn| {
+            let count: i32 = conn.query_row(
+                "SELECT COUNT(*) FROM donations WHERE user_id = ?1",
+                [user_id],
+                |row| row.get(0),
+            )?;
+            Ok(count > 0)
+        })
+    }
 }
 
 /// 统一的行映射函数（消除字段映射的重复和索引错误风险）
@@ -255,6 +460,18 @@ pub struct UserRecord {
     pub created_at: String,
     pub last_seen_at: String,
     pub nickname: Option<String>,
+}
+
+/// 导师对话记录
+#[derive(Debug, Clone)]
+pub struct MentorChatRecord {
+    pub id: String,
+    pub user_id: String,
+    pub photo_id: String,
+    pub messages: String,
+    pub message_count: i32,
+    pub created_at: String,
+    pub updated_at: String,
 }
 
 /// 生成随机趣味昵称

@@ -39,7 +39,7 @@ use infrastructure::{
     },
     storage::local_file_storage::LocalFileStorage,
 };
-use presentation::routes::{battle, donate, health, leaderboard, locale, me, photos, unsplash};
+use presentation::routes::{battle, donate, health, leaderboard, locale, me, mentor, photos, unsplash, webhook};
 
 /// 全局应用状态（依赖注入容器）
 pub struct AppState {
@@ -51,6 +51,7 @@ pub struct AppState {
     pub delete_photo: DeletePhotoUseCase<SqlitePhotoRepository, LocalFileStorage>,
     pub battle_photo: BattlePhotoUseCase<SqlitePhotoRepository>,
     pub random_unsplash: GetRandomUnsplashUseCase,
+    pub gemini_api_key: String,
 }
 
 #[tokio::main]
@@ -180,7 +181,7 @@ async fn main() {
         repository.clone(),
         upload_dir.clone(),
         unsplash_client.clone(),
-        gemini_api_key,
+        gemini_api_key.clone(),
         base_url,
     );
 
@@ -195,6 +196,7 @@ async fn main() {
         delete_photo,
         battle_photo,
         random_unsplash,
+        gemini_api_key,
     });
 
     let cors = CorsLayer::new()
@@ -214,6 +216,10 @@ async fn main() {
         .route("/api/health", get(health::health_check))
         .route("/api/me", get(me::get_me))
         .route("/api/me", axum::routing::patch(me::update_nickname))
+        .route("/api/me/quota", get(me::get_quota))
+        .route("/api/photos/:id/mentor-chat", get(mentor::get_mentor_chat))
+        .route("/api/photos/:id/mentor-chat", axum::routing::post(mentor::post_mentor_chat))
+        .route("/api/stripe/webhook", axum::routing::post(webhook::stripe_webhook))
         .route("/api/donate", post(donate::create_checkout_session))
         .nest_service("/uploads", ServeDir::new("./uploads"))
         .nest_service("/thumbnails", ServeDir::new("./uploads/thumbnails"))

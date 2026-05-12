@@ -6,8 +6,12 @@ use axum::{
 use serde::Deserialize;
 use std::sync::Arc;
 
+use crate::application::dto::QuotaDto;
 use crate::presentation::error::ApiError;
 use crate::AppState;
+
+const DAILY_MENTOR_LIMIT: i32 = 3;
+const DAILY_UPLOAD_LIMIT: i32 = 3;
 
 #[derive(Debug, serde::Serialize)]
 pub struct MeResponse {
@@ -40,6 +44,38 @@ pub async fn get_me(
         })),
         None => Err(ApiError::External("User not found".to_string())),
     }
+}
+
+pub async fn get_quota(
+    State(state): State<Arc<AppState>>,
+    headers: HeaderMap,
+) -> Result<Json<QuotaDto>, ApiError> {
+    let user_id = headers
+        .get("X-User-ID")
+        .and_then(|v| v.to_str().ok())
+        .map(|s| s.to_string());
+
+    let Some(uid) = user_id else {
+        return Ok(Json(QuotaDto {
+            uploads_today: 0,
+            upload_limit: DAILY_UPLOAD_LIMIT,
+            mentor_messages_today: 0,
+            mentor_message_limit: DAILY_MENTOR_LIMIT,
+            is_donor: false,
+        }));
+    };
+
+    let uploads_today = state.repository.count_uploads_today(&uid).await.unwrap_or(0);
+    let (_, mentor_usage) = state.repository.get_mentor_chat_usage(&uid).await.unwrap_or((String::new(), 0));
+    let is_donor = state.repository.has_donated(&uid).await.unwrap_or(false);
+
+    Ok(Json(QuotaDto {
+        uploads_today,
+        upload_limit: DAILY_UPLOAD_LIMIT,
+        mentor_messages_today: mentor_usage,
+        mentor_message_limit: DAILY_MENTOR_LIMIT,
+        is_donor,
+    }))
 }
 
 pub async fn update_nickname(
