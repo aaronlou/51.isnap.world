@@ -6,13 +6,10 @@ import type { MentorMessage as MentorMessageType } from '@/api/mentor';
 import { fetchQuota } from '@/api/me';
 import { useLocale } from '@/i18n/LocaleContext';
 import DonateNudge from './DonateNudge';
-import DonateModal from './DonateModal';
 
 interface MentorChatProps {
   photoId: string;
 }
-
-const DAILY_LIMIT = 3;
 
 export default function MentorChat({ photoId }: MentorChatProps) {
   const { t } = useLocale();
@@ -20,10 +17,9 @@ export default function MentorChat({ photoId }: MentorChatProps) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [isLoadingHistory, setIsLoadingHistory] = useState(false);
-  const [remaining, setRemaining] = useState(DAILY_LIMIT);
   const [isDonor, setIsDonor] = useState(false);
   const [showDonateNudge, setShowDonateNudge] = useState(false);
-  const [showDonateModal, setShowDonateModal] = useState(false);
+  const [hasSeenDonateHint, setHasSeenDonateHint] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -37,15 +33,6 @@ export default function MentorChat({ photoId }: MentorChatProps) {
       ]);
       setMessages(chatData.messages);
       setIsDonor(quota.is_donor);
-      if (quota.is_donor) {
-        setRemaining(999);
-      } else {
-        const rem = Math.max(0, DAILY_LIMIT - chatData.message_count);
-        setRemaining(rem);
-        if (rem <= 0) {
-          setShowDonateNudge(true);
-        }
-      }
     } catch (err: any) {
       console.error('Failed to load mentor chat:', err);
     } finally {
@@ -65,11 +52,6 @@ export default function MentorChat({ photoId }: MentorChatProps) {
     const trimmed = input.trim();
     if (!trimmed || isLoading) return;
 
-    if (!isDonor && remaining <= 0) {
-      setShowDonateModal(true);
-      return;
-    }
-
     setError(null);
     const userMsg: MentorMessageType = {
       role: 'user',
@@ -83,18 +65,14 @@ export default function MentorChat({ photoId }: MentorChatProps) {
     try {
       const res = await sendMentorMessage(photoId, trimmed);
       setMessages(res.messages);
-      setRemaining(res.remaining);
-    } catch (err: any) {
-      const msg = err.response?.data?.error || '';
-      if (msg.includes('DAILY_LIMIT_REACHED')) {
-        setRemaining(0);
+
+      // 超过免费额度后，首次弹出捐赠引导（不阻断对话）
+      if (res.remaining < 0 && !isDonor && !hasSeenDonateHint) {
         setShowDonateNudge(true);
-        // 移除刚添加的用户消息（因为后端没处理）
-        setMessages(prev => prev.slice(0, -1));
-      } else {
-        setError(t('mentor.error'));
-        setMessages(prev => prev.slice(0, -1));
       }
+    } catch (err: any) {
+      setError(t('mentor.error'));
+      setMessages(prev => prev.slice(0, -1));
     } finally {
       setIsLoading(false);
       setTimeout(() => inputRef.current?.focus(), 50);
@@ -108,6 +86,11 @@ export default function MentorChat({ photoId }: MentorChatProps) {
     }
   };
 
+  const dismissDonateNudge = () => {
+    setShowDonateNudge(false);
+    setHasSeenDonateHint(true);
+  };
+
   return (
     <div className="mt-6 border-t border-ink-800/40 pt-6">
       {/* Header */}
@@ -116,26 +99,16 @@ export default function MentorChat({ photoId }: MentorChatProps) {
         <span className="text-xs font-medium tracking-[0.15em] uppercase text-cream-muted">
           {t('mentor.title')}
         </span>
-        <span className="text-[10px] text-cream-subtle ml-auto">
-          {isDonor ? (
-            <span className="text-gold-400">{t('mentor.unlimited')}</span>
-          ) : (
-            <>{t('mentor.remaining')} {remaining}/{DAILY_LIMIT}</>
-          )}
-        </span>
       </div>
 
-      {/* Donate Nudge — 配额用完时显示，可关闭 */}
-      {!isDonor && remaining <= 0 && showDonateNudge && (
+      {/* Donate Nudge — 超过额度后弹出一次，可关闭 */}
+      {!isDonor && showDonateNudge && (
         <DonateNudge
           isOpen={true}
-          onClose={() => setShowDonateNudge(false)}
+          onClose={dismissDonateNudge}
           type="mentor"
         />
       )}
-
-      {/* Full Donate Modal */}
-      <DonateModal isOpen={showDonateModal} onClose={() => setShowDonateModal(false)} />
 
       {/* Messages */}
       <div className="space-y-3 mb-4 max-h-[320px] overflow-y-auto pr-1 custom-scrollbar">
@@ -204,13 +177,13 @@ export default function MentorChat({ photoId }: MentorChatProps) {
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={handleKeyDown}
-          disabled={isLoading || (!isDonor && remaining <= 0)}
-          placeholder={!isDonor && remaining <= 0 ? t('mentor.limitReachedHint') : t('mentor.placeholder')}
+          disabled={isLoading}
+          placeholder={t('mentor.placeholder')}
           className="w-full bg-ink-800/60 border border-ink-700/40 rounded-xl pl-4 pr-11 py-2.5 text-xs text-cream placeholder:text-cream-subtle/40 focus:outline-none focus:border-gold-400/40 transition-colors disabled:opacity-50"
         />
         <button
           onClick={handleSend}
-          disabled={!input.trim() || isLoading || (!isDonor && remaining <= 0)}
+          disabled={!input.trim() || isLoading}
           className="absolute right-2 top-1/2 -translate-y-1/2 w-7 h-7 rounded-lg bg-gold-400/10 border border-gold-400/20 flex items-center justify-center text-gold-400 hover:bg-gold-400/20 transition-colors disabled:opacity-30 disabled:hover:bg-gold-400/10"
         >
           <Send className="w-3.5 h-3.5" strokeWidth={1.5} />

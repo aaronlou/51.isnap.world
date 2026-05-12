@@ -16,7 +16,7 @@ use crate::infrastructure::http::gemini_mentor::{GeminiMentor, MentorMessage};
 use crate::presentation::error::ApiError;
 use crate::AppState;
 
-const DAILY_MENTOR_LIMIT: i32 = 3;
+const DAILY_MENTOR_HINT_THRESHOLD: i32 = 3;
 
 pub async fn get_mentor_chat(
     State(state): State<Arc<AppState>>,
@@ -60,15 +60,6 @@ pub async fn post_mentor_chat(
     // 确保用户存在
     state.repository.ensure_user(&uid).await?;
 
-    // 检查每日配额（捐赠用户跳过限制）
-    let is_donor = state.repository.has_donated(&uid).await.unwrap_or(false);
-    let (_, usage_today) = state.repository.get_mentor_chat_usage(&uid).await?;
-    if !is_donor && usage_today >= DAILY_MENTOR_LIMIT {
-        return Err(ApiError::RateLimited(
-            "DAILY_LIMIT_REACHED".to_string()
-        ));
-    }
-
     // 查找照片
     let photo = state.repository.find_by_id(&crate::domain::photo::PhotoId::new(photo_id.clone())).await?;
     let photo = match photo {
@@ -96,9 +87,9 @@ pub async fn post_mentor_chat(
     let mentor = GeminiMentor::new(state.gemini_api_key.clone());
     let reply = mentor.chat(&image_path, &history, &payload.message).await?;
 
-    // 更新使用量
+    // 更新使用量（仅统计，不再限制）
     let new_usage = state.repository.increment_mentor_chat_usage(&uid).await?;
-    let remaining = (DAILY_MENTOR_LIMIT - new_usage).max(0);
+    let remaining = DAILY_MENTOR_HINT_THRESHOLD - new_usage;
 
     // 保存消息到历史
     let now = Utc::now().to_rfc3339();
