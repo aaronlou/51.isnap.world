@@ -155,7 +155,7 @@ export default function ScoreReveal({
         className="relative w-full max-w-md"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="relative bg-ink-900 border border-ink-800/80 rounded-3xl overflow-hidden">
+        <div className="relative bg-ink-900 border border-ink-800/80 rounded-3xl max-h-[85vh] overflow-y-auto custom-scrollbar">
           <Confetti isPodium={isPodium && phase === 'revealed'} />
 
           {/* Close */}
