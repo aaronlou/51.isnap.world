@@ -147,6 +147,7 @@ export type TranslationKey =
   | 'mentor.thinking'
   | 'mentor.placeholder'
   | 'mentor.limitReached'
+  | 'mentor.limitReachedHint'
   | 'mentor.hint'
   | 'mentor.error'
   | 'nudge.uploadTitle'
@@ -306,6 +307,7 @@ const zh: Record<TranslationKey, string> = {
   'mentor.thinking': '导师正在思考...',
   'mentor.placeholder': '例如：如何改善这张的构图？',
   'mentor.limitReached': '今日免费次数已用完',
+  'mentor.limitReachedHint': '支持我们，解锁无限畅聊 ✨',
   'mentor.hint': '每日 3 次免费追问，支持我们可无限畅聊',
   'mentor.error': '发送失败，请重试',
   'mentor.unlimited': '无限畅聊',
@@ -466,6 +468,7 @@ const en: Record<TranslationKey, string> = {
   'mentor.thinking': 'Mentor is thinking...',
   'mentor.placeholder': 'e.g. How to improve the composition?',
   'mentor.limitReached': 'Daily free limit reached',
+  'mentor.limitReachedHint': 'Support us to unlock unlimited chats ✨',
   'mentor.hint': '3 free questions daily. Support us for unlimited access.',
   'mentor.error': 'Failed to send. Please try again.',
   'mentor.unlimited': 'Unlimited',
